@@ -1,0 +1,18 @@
+{
+  "name": "quill-ai",
+  "version": "1.0.0",
+  "description": "Quill — meeting analysis and email responder (Electron)",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": ["electron", "openai", "assistant"],
+  "author": "Manav Prajapati",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^33.2.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

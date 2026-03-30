@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'"
+    />
+    <title>Quill</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,400&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      (function () {
+        try {
+          var pref = localStorage.getItem("quill-theme-pref") || "system";
+          var dark =
+            pref === "dark" ||
+            (pref !== "light" &&
+              typeof matchMedia !== "undefined" &&
+              matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+        } catch (e) {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="bg-mesh" aria-hidden="true"></div>
+
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg class="icon icon-lg icon-quill" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5l6.74-6.76z" />
+            <line x1="16" y1="8" x2="2" y2="22" />
+            <line x1="17.5" y1="15" x2="9" y2="15" />
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1 class="brand-name">Quill</h1>
+          <p class="tagline">Your assistant for meetings &amp; mail</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="theme-switch" role="group" aria-label="Appearance">
+          <button
+            type="button"
+            class="theme-btn"
+            id="theme-light"
+            data-theme-pref="light"
+            title="Light mode"
+            aria-label="Use light theme"
+            aria-pressed="false"
+          >
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+            </svg>
+            <span class="theme-btn-label">Light</span>
+          </button>
+          <button
+            type="button"
+            class="theme-btn"
+            id="theme-dark"
+            data-theme-pref="dark"
+            title="Dark mode"
+            aria-label="Use dark theme"
+            aria-pressed="false"
+          >
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+            </svg>
+            <span class="theme-btn-label">Dark</span>
+          </button>
+          <button
+            type="button"
+            class="theme-btn"
+            id="theme-system"
+            data-theme-pref="system"
+            title="Match system"
+            aria-label="Match system color scheme"
+            aria-pressed="false"
+          >
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="2" y="3" width="20" height="14" rx="2" />
+              <path d="M8 21h8M12 17v4" />
+            </svg>
+            <span class="theme-btn-label">System</span>
+          </button>
+        </div>
+        <button type="button" class="btn btn-clear-header" id="btn-clear-workspace" title="Clear inputs and results for the current tab">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 6h18" />
+            <path d="M8 6V4h8v2" />
+            <path d="M19 6l-1 14H6L5 6" />
+            <path d="M10 11v6M14 11v6" />
+          </svg>
+          <span>Clear workspace</span>
+        </button>
+      </div>
+    </header>
+
+    <nav class="tabs-wrap">
+      <div class="tabs" role="tablist" aria-label="Main sections">
+        <button type="button" class="tab active" data-tab="meeting" role="tab" aria-selected="true" aria-controls="panel-meeting" id="tab-meeting">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          <span>Meeting Analyzer</span>
+        </button>
+        <button type="button" class="tab" data-tab="email" role="tab" aria-selected="false" aria-controls="panel-email" id="tab-email">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <rect x="2" y="4" width="20" height="16" rx="2" />
+            <path d="M22 7l-10 6L2 7" />
+          </svg>
+          <span>Email Generator</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Meeting Analyzer -->
+    <section id="panel-meeting" class="panel active" role="tabpanel" aria-labelledby="tab-meeting">
+      <div class="split">
+        <div class="pane pane-input glass">
+          <div class="pane-header">
+            <h2>
+              <svg class="icon icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
+              </svg>
+              Transcript
+            </h2>
+            <div class="toolbar">
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-sample-meeting" title="Load example transcript">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                </svg>
+                <span>Sample</span>
+              </button>
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-clear-meeting" title="Clear meeting inputs and results">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                <span>Clear</span>
+              </button>
+            </div>
+          </div>
+          <textarea id="meeting-input" class="textarea" rows="14" placeholder="Paste your meeting transcript here…" spellcheck="true"></textarea>
+          <div class="customize-block">
+            <label for="meeting-analysis-custom">Customize analysis <span class="label-hint">(optional)</span></label>
+            <textarea
+              id="meeting-analysis-custom"
+              class="textarea textarea-custom"
+              rows="3"
+              placeholder="e.g. Prioritize security risks · Use UK date format · Keep summary under 3 sentences…"
+              spellcheck="true"
+            ></textarea>
+          </div>
+          <div class="customize-block">
+            <label for="followup-custom">Customize follow-up email <span class="label-hint">(optional)</span></label>
+            <textarea
+              id="followup-custom"
+              class="textarea textarea-custom textarea-custom-muted"
+              rows="2"
+              placeholder="e.g. More formal · CC legal · Bullet list of owners only…"
+              spellcheck="true"
+            ></textarea>
+          </div>
+          <div class="actions-row">
+            <button type="button" class="btn btn-primary" id="btn-analyze">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+                <path d="M19 3v4M21 5h-4" />
+              </svg>
+              <span>Analyze Meeting</span>
+            </button>
+            <button type="button" class="btn btn-secondary" id="btn-followup-email" disabled>
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                <path d="m22 6-10 7L2 6" />
+              </svg>
+              <span>Follow-up Email</span>
+            </button>
+          </div>
+        </div>
+        <div class="pane pane-output glass">
+          <div class="pane-header">
+            <h2>
+              <svg class="icon icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <path d="M22 4L12 14.01l-3-3" />
+              </svg>
+              Results
+            </h2>
+            <div class="toolbar">
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-copy-meeting" disabled title="Copy all output">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <rect x="9" y="9" width="13" height="13" rx="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+                <span>Copy</span>
+              </button>
+            </div>
+          </div>
+          <div class="output-scroll">
+            <div id="meeting-loading" class="loading hidden" aria-live="polite">
+              <span class="spinner" aria-hidden="true"></span>
+              <span>Analyzing transcript…</span>
+            </div>
+            <div id="meeting-error" class="alert alert-error hidden" role="alert"></div>
+            <div id="meeting-output" class="meeting-output"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Email Generator -->
+    <section id="panel-email" class="panel" role="tabpanel" aria-labelledby="tab-email" hidden>
+      <div class="split">
+        <div class="pane pane-input glass">
+          <div class="pane-header">
+            <h2>
+              <svg class="icon icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              Incoming
+            </h2>
+            <div class="toolbar">
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-sample-email" title="Load example message">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                </svg>
+                <span>Sample</span>
+              </button>
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-clear-email" title="Clear email inputs and results">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                <span>Clear</span>
+              </button>
+            </div>
+          </div>
+          <textarea id="email-input" class="textarea" rows="12" placeholder="Paste email or support ticket…" spellcheck="true"></textarea>
+          <div class="field-row">
+            <label for="tone-select">
+              <svg class="icon icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+              </svg>
+              Tone
+            </label>
+            <select id="tone-select" class="select">
+              <option value="Professional">Professional</option>
+              <option value="Friendly">Friendly</option>
+              <option value="Assertive">Assertive</option>
+            </select>
+          </div>
+          <div class="customize-block">
+            <label for="email-reply-custom">Customize reply <span class="label-hint">(optional)</span></label>
+            <textarea
+              id="email-reply-custom"
+              class="textarea textarea-custom"
+              rows="3"
+              placeholder="e.g. Offer a call this week · Mention our refund policy · Keep under 150 words…"
+              spellcheck="true"
+            ></textarea>
+          </div>
+          <div class="actions-row">
+            <button type="button" class="btn btn-primary" id="btn-generate-reply">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="m22 2-7 20-4-9-9-4Z" />
+                <path d="M22 2 11 13" />
+              </svg>
+              <span>Generate Reply</span>
+            </button>
+          </div>
+        </div>
+        <div class="pane pane-output glass">
+          <div class="pane-header">
+            <h2>
+              <svg class="icon icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                <path d="m22 6-10 7L2 6" />
+              </svg>
+              Reply
+            </h2>
+            <div class="toolbar">
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-copy-email" disabled title="Copy reply">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <rect x="9" y="9" width="13" height="13" rx="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+                <span>Copy</span>
+              </button>
+            </div>
+          </div>
+          <div class="output-scroll">
+            <div id="email-loading" class="loading hidden" aria-live="polite">
+              <span class="spinner" aria-hidden="true"></span>
+              <span>Generating reply…</span>
+            </div>
+            <div id="email-error" class="alert alert-error hidden" role="alert"></div>
+            <pre id="email-output" class="email-output"></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="app-footer" role="contentinfo">
+      <div class="footer-inner">
+        <span class="footer-line">© 2026 Quill. All rights reserved.</span>
+        <span class="footer-sep" aria-hidden="true">·</span>
+        <span class="footer-credit">Developed by Manav Prajapati</span>
+      </div>
+    </footer>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>
