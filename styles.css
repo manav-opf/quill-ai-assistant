@@ -781,6 +781,50 @@ html[data-theme="light"] .btn-ghost {
   font-style: italic;
 }
 
+/* PPT slide preview */
+.ppt-preview {
+  font-family: var(--font-ui);
+}
+
+.ppt-preview:empty::before {
+  content: "Generate slides to see a preview here.";
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.ppt-slide-card {
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--pre-bg);
+}
+
+.ppt-slide-card:last-child {
+  margin-bottom: 0;
+}
+
+.ppt-slide-card h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+  color: var(--text);
+}
+
+.ppt-slide-card ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.ppt-slide-card li {
+  margin-bottom: 0.25rem;
+}
+
 /* Footer */
 .app-footer {
   position: relative;

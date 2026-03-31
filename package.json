@@ -1,18 +1,23 @@
 {
   "name": "quill-ai",
   "version": "1.0.0",
-  "description": "Quill — meeting analysis and email responder (Electron)",
+  "description": "Quill — meetings, email, and AI PowerPoint (Electron)",
   "main": "main.js",
   "scripts": {
     "start": "electron ."
   },
-  "keywords": ["electron", "openai", "assistant"],
+  "keywords": [
+    "electron",
+    "openai",
+    "assistant"
+  ],
   "author": "Manav Prajapati",
   "license": "MIT",
   "devDependencies": {
     "electron": "^33.2.0"
   },
   "dependencies": {
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "pptxgenjs": "^3.12.0"
   }
 }

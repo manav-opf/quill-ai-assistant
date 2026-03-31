@@ -5,6 +5,9 @@
 // Last parsed meeting result (for follow-up email)
 let lastMeetingActions = [];
 
+// Last generated PPT slide data (for download)
+let lastPptSlides = [];
+
 /** Meeting analysis system prompt (user-specified JSON shape). */
 const MEETING_SYSTEM_PROMPT = `Extract the following from the meeting transcript:
 1. Summary (short paragraph)
@@ -60,6 +63,38 @@ Thanks,
 Riley Chen
 Finance Ops, Northwind LLC`;
 
+/** AI prompt: outline → structured slides JSON (5–7 slides). */
+const PPT_SYSTEM_PROMPT = `Convert the following content into a business presentation.
+
+Rules:
+- 5 to 7 slides
+- Each slide:
+  - Title
+  - 3-5 bullet points
+- Keep concise and professional
+
+Return ONLY valid JSON in this format:
+{
+  "slides": [
+    {
+      "title": "",
+      "bullets": ["", "", ""]
+    }
+  ]
+}`;
+
+const SAMPLE_PPT_CONTENT = `Internal pitch: Quill rollout (Q2)
+
+We are launching Quill as the default desktop assistant for meeting notes and customer email drafts. Goals: cut follow-up time by 40%, standardize action tracking, and reduce tone inconsistencies in support replies.
+
+Target users: team leads, PMs, and tier-1 support. Success metrics: weekly active users, average time from meeting end to summary sent, and CSAT on outbound replies.
+
+Rollout in three waves: pilot (50 users), department expansion, then company-wide. Training will be two short videos plus office hours.
+
+Risks: API cost spikes, change management fatigue, and privacy questions about transcripts. Mitigations: usage dashboards, executive sponsors, and clear data-handling FAQ.
+
+Ask: approve pilot headcount and comms plan by Friday. Next step: schedule kickoff with IT for SSO-ready builds.`;
+
 /**
  * Calls OpenAI via main process (fetch + API key stay in main).
  * @param {string} userContent - User message content
@@ -102,6 +137,48 @@ function parseMeetingJson(text) {
   if (typeof data.summary !== 'string') data.summary = '';
   if (!Array.isArray(data.actions)) data.actions = [];
   return data;
+}
+
+/** Parse and normalize PPT JSON from the model. */
+function parsePptJson(text) {
+  const jsonStr = extractJsonText(text);
+  const data = JSON.parse(jsonStr);
+  if (!data || typeof data !== 'object') throw new Error('Invalid response: not an object.');
+  if (!Array.isArray(data.slides)) throw new Error('Invalid response: missing "slides" array.');
+
+  const slides = data.slides.map((s, i) => {
+    const title = typeof s?.title === 'string' ? s.title.trim() : '';
+    let bullets = Array.isArray(s?.bullets) ? s.bullets.map((b) => String(b ?? '').trim()).filter(Boolean) : [];
+    if (bullets.length > 5) bullets = bullets.slice(0, 5);
+    return {
+      title: title || `Slide ${i + 1}`,
+      bullets: bullets.length ? bullets : ['(No bullet points provided)'],
+    };
+  });
+
+  return slides;
+}
+
+function renderPptPreview(slides) {
+  const el = document.getElementById('ppt-preview');
+  el.innerHTML = slides
+    .map(
+      (s, idx) => `
+    <div class="ppt-slide-card">
+      <h4>${idx + 1}. ${escapeHtml(s.title)}</h4>
+      <ul>${s.bullets.map((b) => `<li>${escapeHtml(b)}</li>`).join('')}</ul>
+    </div>`,
+    )
+    .join('');
+}
+
+function pptPreviewAsPlainText(slides) {
+  return slides
+    .map((s, i) => {
+      const lines = [`${i + 1}. ${s.title}`, ...s.bullets.map((b) => `   • ${b}`)];
+      return lines.join('\n');
+    })
+    .join('\n\n');
 }
 
 function renderMeetingOutput(data) {
@@ -169,6 +246,16 @@ function clearEmailWorkspace() {
   document.getElementById('btn-copy-email').disabled = true;
 }
 
+function clearPptWorkspace() {
+  document.getElementById('ppt-input').value = '';
+  document.getElementById('ppt-preview').innerHTML = '';
+  hideError('ppt-error');
+  setLoading('ppt-loading', false);
+  document.getElementById('btn-download-ppt').disabled = true;
+  document.getElementById('btn-copy-ppt').disabled = true;
+  lastPptSlides = [];
+}
+
 function getActiveTabName() {
   const t = document.querySelector('.tab.active');
   return t ? t.dataset.tab : 'meeting';
@@ -200,7 +287,9 @@ document.querySelectorAll('.tab').forEach((tab) => {
 
 // --- Clear workspace ---
 document.getElementById('btn-clear-workspace').addEventListener('click', () => {
-  if (getActiveTabName() === 'email') clearEmailWorkspace();
+  const tab = getActiveTabName();
+  if (tab === 'email') clearEmailWorkspace();
+  else if (tab === 'ppt') clearPptWorkspace();
   else clearMeetingWorkspace();
 });
 
@@ -210,6 +299,10 @@ document.getElementById('btn-clear-meeting').addEventListener('click', () => {
 
 document.getElementById('btn-clear-email').addEventListener('click', () => {
   clearEmailWorkspace();
+});
+
+document.getElementById('btn-clear-ppt').addEventListener('click', () => {
+  clearPptWorkspace();
 });
 
 // --- Meeting ---
@@ -348,6 +441,71 @@ document.getElementById('btn-copy-email').addEventListener('click', async () => 
     await navigator.clipboard.writeText(text);
   } catch {
     showError('email-error', 'Could not copy to clipboard.');
+  }
+});
+
+// --- PPT Generator ---
+document.getElementById('btn-sample-ppt').addEventListener('click', () => {
+  document.getElementById('ppt-input').value = SAMPLE_PPT_CONTENT;
+});
+
+document.getElementById('btn-generate-slides').addEventListener('click', async () => {
+  const raw = document.getElementById('ppt-input').value.trim();
+  hideError('ppt-error');
+  document.getElementById('ppt-preview').innerHTML = '';
+  document.getElementById('btn-download-ppt').disabled = true;
+  document.getElementById('btn-copy-ppt').disabled = true;
+  lastPptSlides = [];
+
+  if (!raw) {
+    showError('ppt-error', 'Paste or type some content to turn into slides.');
+    return;
+  }
+
+  setLoading('ppt-loading', true);
+  try {
+    const text = await callAI(raw, PPT_SYSTEM_PROMPT);
+    const slides = parsePptJson(text);
+    lastPptSlides = slides;
+    renderPptPreview(slides);
+    document.getElementById('btn-download-ppt').disabled = false;
+    document.getElementById('btn-copy-ppt').disabled = false;
+  } catch (e) {
+    const msg = e instanceof SyntaxError ? 'Could not parse AI response as JSON. Try again.' : e.message || String(e);
+    showError('ppt-error', msg);
+  } finally {
+    setLoading('ppt-loading', false);
+  }
+});
+
+document.getElementById('btn-download-ppt').addEventListener('click', async () => {
+  hideError('ppt-error');
+  if (!lastPptSlides.length) {
+    showError('ppt-error', 'Generate slides first.');
+    return;
+  }
+  const api = window.electronAPI;
+  if (!api?.savePPTX) {
+    showError('ppt-error', 'savePPTX is not available. Check preload.');
+    return;
+  }
+  try {
+    const result = await api.savePPTX(lastPptSlides);
+    if (result.canceled) return;
+    if (!result.ok) {
+      showError('ppt-error', result.error || 'Could not save file.');
+    }
+  } catch (e) {
+    showError('ppt-error', e.message || String(e));
+  }
+});
+
+document.getElementById('btn-copy-ppt').addEventListener('click', async () => {
+  if (!lastPptSlides.length) return;
+  try {
+    await navigator.clipboard.writeText(pptPreviewAsPlainText(lastPptSlides));
+  } catch {
+    showError('ppt-error', 'Could not copy to clipboard.');
   }
 });
 

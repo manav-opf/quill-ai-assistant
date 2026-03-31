@@ -1,6 +1,6 @@
 # Quill
 
-Electron desktop app **Quill**: **Meeting Analyzer** (summary, actions, owners, deadlines, follow-up email) and **Email Generator** (tone-aware replies). Calls the OpenAI API from the main process using your API key.
+Electron desktop app **Quill**: **Meeting Analyzer**, **Email Generator** (tone-aware replies), and **PPT Generator** (AI outline → slide preview → downloadable `.pptx` via [pptxgenjs](https://github.com/gitbrent/PptxGenJS)). OpenAI is called from the main process; your API key stays out of the renderer.
 
 ## Setup
 
@@ -24,14 +24,14 @@ Edit `.env` and set `OPENAI_API_KEY`.
 npm start
 ```
 
-Without a valid key, actions show a clear error; you can still use **Load Sample Meeting** / **Load Sample Email** to pre-fill inputs.
+Without a valid key, AI actions show an error; you can still use **Sample** buttons to pre-fill inputs. **Download PPT** opens a save dialog and writes the file locally (no upload).
 
 ## Files
 
 | File        | Role                                      |
 | ----------- | ----------------------------------------- |
-| `main.js`   | Electron window, OpenAI `fetch`, IPC      |
-| `preload.js`| Secure `electronAPI.openaiChat` bridge    |
+| `main.js`   | Window, OpenAI `fetch`, PPT build + save dialog |
+| `preload.js`| `openaiChat`, `savePPTX` bridge           |
 | `renderer.js` | Tabs, UI, prompts, JSON parsing       |
 | `index.html`| Layout                                    |
 | `styles.css`| Theme and layout                          |

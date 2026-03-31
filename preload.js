@@ -12,4 +12,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openaiChat(messages, options = {}) {
     return ipcRenderer.invoke('openai-chat', { messages, ...options });
   },
+
+  /**
+   * Generate .pptx from slide definitions; opens system save dialog.
+   * @param {{ title: string, bullets: string[] }[]} slides
+   * @returns {Promise<{ ok: boolean, path?: string, canceled?: boolean, error?: string }>}
+   */
+  savePPTX(slides) {
+    return ipcRenderer.invoke('save-pptx', slides);
+  },
 });

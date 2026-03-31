@@ -45,7 +45,7 @@
         </div>
         <div class="brand-text">
           <h1 class="brand-name">Quill</h1>
-          <p class="tagline">Your assistant for meetings &amp; mail</p>
+          <p class="tagline">Meetings, mail &amp; slide decks</p>
         </div>
       </div>
       <div class="header-actions">
@@ -123,6 +123,13 @@
             <path d="M22 7l-10 6L2 7" />
           </svg>
           <span>Email Generator</span>
+        </button>
+        <button type="button" class="tab" data-tab="ppt" role="tab" aria-selected="false" aria-controls="panel-ppt" id="tab-ppt">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <rect x="2" y="3" width="20" height="14" rx="2" />
+            <path d="M8 21h8M12 17v4" />
+          </svg>
+          <span>PPT Generator</span>
         </button>
       </div>
     </nav>
@@ -311,6 +318,90 @@
             </div>
             <div id="email-error" class="alert alert-error hidden" role="alert"></div>
             <pre id="email-output" class="email-output"></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PPT Generator -->
+    <section id="panel-ppt" class="panel" role="tabpanel" aria-labelledby="tab-ppt" hidden>
+      <div class="split">
+        <div class="pane pane-input glass">
+          <div class="pane-header">
+            <h2>
+              <svg class="icon icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <path d="M14 2v6h6M12 18v-6M9 15h6" />
+              </svg>
+              Content
+            </h2>
+            <div class="toolbar">
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-sample-ppt" title="Load example outline">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                </svg>
+                <span>Sample</span>
+              </button>
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-clear-ppt" title="Clear PPT inputs and preview">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                <span>Clear</span>
+              </button>
+            </div>
+          </div>
+          <textarea
+            id="ppt-input"
+            class="textarea"
+            rows="14"
+            placeholder="Paste notes, an outline, or any content you want turned into slides…"
+            spellcheck="true"
+          ></textarea>
+          <div class="actions-row">
+            <button type="button" class="btn btn-primary" id="btn-generate-slides">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+                <path d="M19 3v4M21 5h-4" />
+              </svg>
+              <span>Generate Slides</span>
+            </button>
+            <button type="button" class="btn btn-secondary" id="btn-download-ppt" disabled title="Save .pptx after generating slides">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              <span>Download PPT</span>
+            </button>
+          </div>
+        </div>
+        <div class="pane pane-output glass">
+          <div class="pane-header">
+            <h2>
+              <svg class="icon icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="2" y="3" width="20" height="14" rx="2" />
+                <path d="M8 21h8" />
+              </svg>
+              Slide preview
+            </h2>
+            <div class="toolbar">
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-copy-ppt" disabled title="Copy outline as text">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <rect x="9" y="9" width="13" height="13" rx="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+                <span>Copy</span>
+              </button>
+            </div>
+          </div>
+          <div class="output-scroll">
+            <div id="ppt-loading" class="loading hidden" aria-live="polite">
+              <span class="spinner" aria-hidden="true"></span>
+              <span>Generating slide outline…</span>
+            </div>
+            <div id="ppt-error" class="alert alert-error hidden" role="alert"></div>
+            <div id="ppt-preview" class="ppt-preview"></div>
           </div>
         </div>
       </div>
