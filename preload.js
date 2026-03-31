@@ -16,9 +16,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   /**
    * Generate .pptx from slide definitions; opens system save dialog.
    * @param {{ title: string, bullets: string[] }[]} slides
+   * @param {{ template?: string }} [options]
    * @returns {Promise<{ ok: boolean, path?: string, canceled?: boolean, error?: string }>}
    */
-  savePPTX(slides) {
-    return ipcRenderer.invoke('save-pptx', slides);
+  savePPTX(slides, options = {}) {
+    return ipcRenderer.invoke('save-pptx', { slides, options });
   },
 });

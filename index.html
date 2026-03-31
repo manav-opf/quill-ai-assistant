@@ -358,6 +358,29 @@
             placeholder="Paste notes, an outline, or any content you want turned into slides…"
             spellcheck="true"
           ></textarea>
+          <div class="field-row field-row-ppt">
+            <label for="ppt-template-select">
+              <svg class="icon icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M4 5h16M4 12h16M4 19h10" />
+              </svg>
+              Template
+            </label>
+            <select id="ppt-template-select" class="select">
+              <option value="modern">Modern Gradient</option>
+              <option value="minimal">Minimal Clean</option>
+              <option value="dark">Dark Pro</option>
+            </select>
+            <label for="ppt-slide-count">Slides</label>
+            <input
+              id="ppt-slide-count"
+              class="input-num"
+              type="number"
+              min="3"
+              max="12"
+              step="1"
+              value="6"
+            />
+          </div>
           <div class="actions-row">
             <button type="button" class="btn btn-primary" id="btn-generate-slides">
               <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">

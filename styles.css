@@ -569,6 +569,32 @@ html[data-theme="light"] .tab.active {
   outline-offset: 1px;
 }
 
+.field-row-ppt {
+  flex-wrap: wrap;
+}
+
+.field-row-ppt .select {
+  max-width: 260px;
+  min-width: 180px;
+}
+
+.input-num {
+  width: 84px;
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--select-bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.input-num:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
 .actions-row {
   display: flex;
   flex-wrap: wrap;

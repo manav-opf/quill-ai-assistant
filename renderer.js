@@ -63,25 +63,11 @@ Thanks,
 Riley Chen
 Finance Ops, Northwind LLC`;
 
-/** AI prompt: outline → structured slides JSON (5–7 slides). */
-const PPT_SYSTEM_PROMPT = `Convert the following content into a business presentation.
-
-Rules:
-- 5 to 7 slides
-- Each slide:
-  - Title
-  - 3-5 bullet points
-- Keep concise and professional
-
-Return ONLY valid JSON in this format:
-{
-  "slides": [
-    {
-      "title": "",
-      "bullets": ["", "", ""]
-    }
-  ]
-}`;
+const PPT_TEMPLATE_LABELS = {
+  modern: 'Modern Gradient',
+  minimal: 'Minimal Clean',
+  dark: 'Dark Pro',
+};
 
 const SAMPLE_PPT_CONTENT = `Internal pitch: Quill rollout (Q2)
 
@@ -248,6 +234,8 @@ function clearEmailWorkspace() {
 
 function clearPptWorkspace() {
   document.getElementById('ppt-input').value = '';
+  document.getElementById('ppt-template-select').value = 'modern';
+  document.getElementById('ppt-slide-count').value = '6';
   document.getElementById('ppt-preview').innerHTML = '';
   hideError('ppt-error');
   setLoading('ppt-loading', false);
@@ -266,6 +254,52 @@ function withOptionalInstructions(base, heading, instructions) {
   const t = String(instructions ?? '').trim();
   if (!t) return base;
   return `${base}\n\n---\n${heading}\n${t}`;
+}
+
+function sanitizeSlideCount(value) {
+  const n = Number.parseInt(String(value), 10);
+  if (Number.isNaN(n)) return 6;
+  return Math.min(12, Math.max(3, n));
+}
+
+function buildPptSystemPrompt(template, count) {
+  const chosenTemplate = PPT_TEMPLATE_LABELS[template] ? template : 'modern';
+  const templateName = PPT_TEMPLATE_LABELS[chosenTemplate];
+  return `Convert the following content into a business presentation.
+
+Design style:
+- Template: ${templateName}
+- Make slides visually polished and presentation-ready
+- Keep a consistent visual voice across all slides
+
+Rules:
+- Exactly ${count} slides
+- Each slide:
+  - Title
+  - 3-5 bullet points
+- Keep concise and professional
+
+Return ONLY valid JSON in this format:
+{
+  "slides": [
+    {
+      "title": "",
+      "bullets": ["", "", ""]
+    }
+  ]
+}`;
+}
+
+function enforceSlideCount(slides, count) {
+  const target = sanitizeSlideCount(count);
+  const normalized = Array.isArray(slides) ? slides.slice(0, target) : [];
+  while (normalized.length < target) {
+    normalized.push({
+      title: `Slide ${normalized.length + 1}`,
+      bullets: ['(Add key point)', '(Add supporting point)', '(Add next action)'],
+    });
+  }
+  return normalized;
 }
 
 // --- Tabs ---
@@ -451,6 +485,9 @@ document.getElementById('btn-sample-ppt').addEventListener('click', () => {
 
 document.getElementById('btn-generate-slides').addEventListener('click', async () => {
   const raw = document.getElementById('ppt-input').value.trim();
+  const template = document.getElementById('ppt-template-select').value;
+  const slideCount = sanitizeSlideCount(document.getElementById('ppt-slide-count').value);
+  document.getElementById('ppt-slide-count').value = String(slideCount);
   hideError('ppt-error');
   document.getElementById('ppt-preview').innerHTML = '';
   document.getElementById('btn-download-ppt').disabled = true;
@@ -464,10 +501,13 @@ document.getElementById('btn-generate-slides').addEventListener('click', async (
 
   setLoading('ppt-loading', true);
   try {
-    const text = await callAI(raw, PPT_SYSTEM_PROMPT);
+    const text = await callAI(raw, buildPptSystemPrompt(template, slideCount));
     const slides = parsePptJson(text);
-    lastPptSlides = slides;
-    renderPptPreview(slides);
+    if (!slides.length) {
+      throw new Error('No slides were generated. Try again.');
+    }
+    lastPptSlides = enforceSlideCount(slides, slideCount);
+    renderPptPreview(lastPptSlides);
     document.getElementById('btn-download-ppt').disabled = false;
     document.getElementById('btn-copy-ppt').disabled = false;
   } catch (e) {
@@ -490,7 +530,8 @@ document.getElementById('btn-download-ppt').addEventListener('click', async () =
     return;
   }
   try {
-    const result = await api.savePPTX(lastPptSlides);
+    const template = document.getElementById('ppt-template-select').value;
+    const result = await api.savePPTX(lastPptSlides, { template });
     if (result.canceled) return;
     if (!result.ok) {
       showError('ppt-error', result.error || 'Could not save file.');

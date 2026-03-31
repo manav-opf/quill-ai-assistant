@@ -14,6 +14,41 @@ const DEFAULT_MODEL = 'gpt-4o-mini';
 
 let mainWindow;
 
+function pptTemplateConfig(template) {
+  const key = String(template || 'modern').toLowerCase();
+  if (key === 'minimal') {
+    return {
+      key,
+      theme: {
+        bgColor: 'F8FAFC',
+        titleColor: '0F172A',
+        bodyColor: '334155',
+        accentColor: '0EA5E9',
+      },
+    };
+  }
+  if (key === 'dark') {
+    return {
+      key,
+      theme: {
+        bgColor: '0F172A',
+        titleColor: 'E2E8F0',
+        bodyColor: 'CBD5E1',
+        accentColor: '22D3EE',
+      },
+    };
+  }
+  return {
+    key: 'modern',
+    theme: {
+      bgColor: 'EEF2FF',
+      titleColor: '312E81',
+      bodyColor: '3730A3',
+      accentColor: '06B6D4',
+    },
+  };
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1100,
@@ -83,27 +118,38 @@ ipcMain.handle('openai-chat', async (_event, payload) => {
  * Build a .pptx from slide objects { title, bullets[] } and write to disk.
  * Runs in main process (pptxgenjs + fs).
  */
-function generatePPT(slides, filePath) {
+function generatePPT(slides, filePath, options = {}) {
   const pptx = new PptxGenJS();
+  pptx.layout = 'LAYOUT_WIDE';
   const list = Array.isArray(slides) ? slides : [];
+  const cfg = pptTemplateConfig(options.template);
 
   list.forEach((slide) => {
     const s = pptx.addSlide();
+    s.background = { color: cfg.theme.bgColor };
+    s.addShape(pptx.ShapeType.line, {
+      x: 0.5,
+      y: 1.28,
+      w: 12.1,
+      h: 0,
+      line: { color: cfg.theme.accentColor, pt: 1.4 },
+    });
+
     const title = String(slide?.title ?? '').trim() || 'Slide';
     s.addText(title, {
       x: 0.5,
       y: 0.5,
-      w: 9,
+      w: 12,
       h: 0.85,
-      fontSize: 24,
+      fontSize: 28,
       bold: true,
-      color: '363636',
+      color: cfg.theme.titleColor,
     });
 
     const rawBullets = Array.isArray(slide?.bullets) ? slide.bullets : [];
     const bullets = rawBullets.map((b) => String(b ?? '').trim()).filter(Boolean);
     if (bullets.length === 0) {
-      s.addText('—', { x: 0.7, y: 1.5, w: 8.5, h: 4, fontSize: 16, color: '666666' });
+      s.addText('—', { x: 0.9, y: 1.7, w: 11, h: 4, fontSize: 18, color: cfg.theme.bodyColor });
       return;
     }
     const runs = bullets.map((text) => ({
@@ -111,12 +157,13 @@ function generatePPT(slides, filePath) {
       options: { bullet: true, breakLine: true },
     }));
     s.addText(runs, {
-      x: 0.7,
-      y: 1.5,
-      w: 8.5,
-      h: 4.5,
-      fontSize: 16,
-      color: '363636',
+      x: 0.9,
+      y: 1.7,
+      w: 11.1,
+      h: 5.1,
+      fontSize: 20,
+      paraSpaceAfterPt: 14,
+      color: cfg.theme.bodyColor,
       valign: 'top',
     });
   });
@@ -125,10 +172,13 @@ function generatePPT(slides, filePath) {
 }
 
 /** Show save dialog, generate .pptx from slides JSON, write to chosen path. */
-ipcMain.handle('save-pptx', async (_event, slides) => {
+ipcMain.handle('save-pptx', async (_event, payload) => {
   if (!mainWindow) {
     return { ok: false, error: 'Window not ready.' };
   }
+
+  const slides = Array.isArray(payload) ? payload : payload?.slides;
+  const options = Array.isArray(payload) ? {} : payload?.options || {};
 
   const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
     title: 'Save PowerPoint presentation',
@@ -141,7 +191,7 @@ ipcMain.handle('save-pptx', async (_event, slides) => {
   }
 
   try {
-    await generatePPT(slides, filePath);
+    await generatePPT(slides, filePath, options);
     return { ok: true, path: filePath };
   } catch (err) {
     return { ok: false, error: err.message || String(err) };
