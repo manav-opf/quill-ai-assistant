@@ -1,10 +1,12 @@
 {
   "name": "quill-ai",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Quill — meetings, email, and AI PowerPoint (Electron)",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win nsis"
   },
   "keywords": [
     "electron",
@@ -13,8 +15,42 @@
   ],
   "author": "Manav Prajapati",
   "license": "MIT",
+  "build": {
+    "appId": "com.manavprajapati.quill",
+    "productName": "Quill",
+    "directories": {
+      "output": "setup"
+    },
+    "files": [
+      "**/*",
+      "!dist/**",
+      "!.git/**",
+      "!.gitignore",
+      "!.env",
+      "!.env.*"
+    ],
+    "win": {
+      "signAndEditExecutable": false,
+      "icon": "assets/icon.ico",
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
   "devDependencies": {
-    "electron": "^33.2.0"
+    "electron": "^33.2.0",
+    "electron-builder": "^26.0.12",
+    "png-to-ico": "^3.0.1",
+    "sharp": "^0.34.5"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

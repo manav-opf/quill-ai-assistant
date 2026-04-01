@@ -22,4 +22,44 @@ contextBridge.exposeInMainWorld('electronAPI', {
   savePPTX(slides, options = {}) {
     return ipcRenderer.invoke('save-pptx', { slides, options });
   },
+
+  passwordVaultStatus() {
+    return ipcRenderer.invoke('password-vault-status');
+  },
+
+  passwordVaultCreate(payload) {
+    return ipcRenderer.invoke('password-vault-create', payload);
+  },
+
+  passwordVaultUnlock(payload) {
+    return ipcRenderer.invoke('password-vault-unlock', payload);
+  },
+
+  passwordVaultLock() {
+    return ipcRenderer.invoke('password-vault-lock');
+  },
+
+  passwordVaultList() {
+    return ipcRenderer.invoke('password-vault-list');
+  },
+
+  passwordVaultGetPassword(payload) {
+    return ipcRenderer.invoke('password-vault-get-password', payload);
+  },
+
+  passwordVaultSaveEntry(payload) {
+    return ipcRenderer.invoke('password-vault-save-entry', payload);
+  },
+
+  passwordVaultDelete(payload) {
+    return ipcRenderer.invoke('password-vault-delete', payload);
+  },
+
+  passwordVaultCopyPassword(payload) {
+    return ipcRenderer.invoke('password-vault-copy-password', payload);
+  },
+
+  passwordVaultGenerate(payload) {
+    return ipcRenderer.invoke('password-vault-generate', payload);
+  },
 });

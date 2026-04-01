@@ -130,6 +130,7 @@ html {
 body {
   margin: 0;
   min-height: 100%;
+  height: 100%;
   font-family: var(--font-ui);
   font-size: 14px;
   line-height: 1.5;
@@ -139,6 +140,7 @@ body {
   flex-direction: column;
   position: relative;
   overflow-x: hidden;
+  overflow-y: hidden;
 }
 
 /* Ambient background */
@@ -185,6 +187,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  flex-shrink: 0;
   padding: 1rem 1.5rem 0.85rem;
   border-bottom: 1px solid var(--border);
   background: var(--header-bg);
@@ -339,6 +342,7 @@ html[data-theme="light"] .brand-mark {
 /* Tabs */
 .tabs-wrap {
   padding: 0.75rem 1.25rem 0;
+  flex-shrink: 0;
 }
 
 .tabs {
@@ -392,6 +396,7 @@ html[data-theme="light"] .tab.active {
   display: none;
   flex-direction: column;
   min-height: 0;
+  overflow: hidden;
   padding: 1rem 1.25rem 1.35rem;
 }
 
@@ -407,6 +412,10 @@ html[data-theme="light"] .tab.active {
   min-height: 0;
   width: 100%;
   align-items: stretch;
+}
+
+.split > .pane {
+  min-height: 0;
 }
 
 .pane-input,
@@ -595,6 +604,465 @@ html[data-theme="light"] .tab.active {
   outline-offset: 1px;
 }
 
+.input-text {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.65rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--select-bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.input-text:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.pane label + .input-text {
+  margin-top: 0.15rem;
+}
+
+.pw-mono {
+  font-family: var(--font-mono);
+}
+
+.pw-form-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+/* Password vault */
+.pw-form-body {
+  padding: 0.5rem 1rem 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+
+.pw-field {
+  margin-bottom: 0.85rem;
+}
+
+.pw-field:last-of-type {
+  margin-bottom: 0.35rem;
+}
+
+.pw-field-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.pw-field-label-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex-shrink: 0;
+  opacity: 0.85;
+  color: var(--accent);
+}
+
+.pw-input-wrap {
+  display: flex;
+  align-items: stretch;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--select-bg);
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.pw-input-wrap:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-dim);
+}
+
+.pw-input-affix {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  flex-shrink: 0;
+  background: var(--field-row-bg);
+  border-right: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.pw-input-affix svg {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.pw-input-affix-top {
+  align-items: flex-start;
+  padding-top: 0.65rem;
+}
+
+.pw-input-wrap .pw-input-inner,
+.pw-input-wrap .pw-input-inner.pw-notes-input {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.pw-input-wrap .pw-input-inner:focus {
+  outline: none;
+}
+
+.pw-input-wrap-textarea {
+  align-items: stretch;
+}
+
+.pw-input-wrap-textarea .pw-notes-input {
+  resize: vertical;
+  min-height: 4.5rem;
+}
+
+.pw-field-password .pw-password-row {
+  margin-bottom: 0.4rem;
+}
+
+.pw-password-tools {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--field-row-bg);
+  border: 1px solid var(--border);
+}
+
+.pw-gen-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.pw-gate {
+  max-width: 420px;
+  margin: 1.25rem auto 2rem;
+  padding: 1.25rem 1.35rem 1.5rem;
+}
+
+.pw-gate-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+  font-family: var(--font-display);
+  color: var(--text);
+}
+
+.pw-gate-copy {
+  margin: 0 0 1rem;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.pw-flow label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.pw-flow .btn-primary {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.pw-open.split {
+  align-items: stretch;
+}
+
+.pw-password-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 0.75rem;
+}
+
+.pw-password-row .pw-field-label {
+  margin-bottom: 0;
+}
+
+.pw-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.pw-check input {
+  accent-color: var(--accent);
+}
+
+.pw-gen-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.pw-gen-len {
+  width: 52px;
+  padding: 0.35rem 0.4rem;
+  margin: 0;
+}
+
+.pw-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pw-search-icon {
+  position: absolute;
+  left: 0.5rem;
+  display: flex;
+  color: var(--text-muted);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.pw-search-icon svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.pw-search-input {
+  width: min(240px, 100%);
+  margin: 0;
+  padding: 0.4rem 0.55rem 0.4rem 2.1rem;
+  font-size: 0.78rem;
+  border-radius: var(--radius-sm);
+}
+
+.pw-list-scroll .pw-list {
+  padding: 0.65rem 0.85rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pw-list-empty {
+  margin: 0;
+  padding: 2rem 1.25rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.pw-list-empty::before {
+  content: "";
+  display: block;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: 0 auto 0.75rem;
+  opacity: 0.35;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath d='M7 10V7a5 5 0 0 1 10 0v3'/%3E%3Crect x='5' y='10' width='14' height='11' rx='2'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.pw-card {
+  position: relative;
+  padding: 0;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  transition: transform 0.15s ease, border-color 0.2s, box-shadow 0.2s;
+}
+
+.pw-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--btn-primary-from), var(--accent-2));
+  opacity: 0.95;
+}
+
+.pw-card:hover {
+  border-color: var(--border-bright);
+  transform: translateY(-1px);
+}
+
+.pw-card-inner {
+  padding: 0.85rem 1rem 0.85rem 1.15rem;
+  margin-left: 4px;
+}
+
+.pw-card-top {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  margin-bottom: 0.65rem;
+}
+
+.pw-card-avatar {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 800;
+  font-family: var(--font-display);
+  color: var(--btn-primary-text);
+  background: linear-gradient(145deg, var(--btn-primary-from), var(--btn-primary-to));
+  box-shadow: 0 4px 12px rgba(34, 211, 238, 0.2);
+}
+
+.pw-card-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.pw-card-title {
+  margin: 0 0 0.2rem;
+  font-size: 0.98rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+  color: var(--text);
+  line-height: 1.25;
+}
+
+.pw-card-updated {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 0.45rem;
+}
+
+.pw-card-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.pw-card-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+  word-break: break-word;
+}
+
+.pw-card-row-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  margin-top: 0.12rem;
+  color: var(--accent);
+  opacity: 0.9;
+}
+
+.pw-card-row-text {
+  min-width: 0;
+  color: var(--text);
+}
+
+.pw-card-row-text a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.pw-card-row-text a:hover {
+  text-decoration: underline;
+}
+
+.pw-card-row-text.meta {
+  color: var(--text-muted);
+  font-style: italic;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.pw-card-notes {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  margin-top: 0.35rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--radius-sm);
+  background: var(--textarea-inner-bg);
+  border: 1px solid var(--border);
+}
+
+.pw-card-notes .pw-card-row-icon {
+  margin-top: 0.06rem;
+}
+
+.pw-card-notes-text {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.pw-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding-top: 0.65rem;
+  margin-top: 0.35rem;
+  border-top: 1px solid var(--border);
+}
+
+.pw-card-actions .btn-sm {
+  padding: 0.4rem 0.65rem;
+  font-size: 0.72rem;
+  gap: 0.3rem;
+}
+
+.pw-btn-ic {
+  width: 0.85rem;
+  height: 0.85rem;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
 .actions-row {
   display: flex;
   flex-wrap: wrap;
@@ -690,11 +1158,17 @@ html[data-theme="light"] .btn-ghost {
 /* Output */
 .output-scroll {
   flex: 1;
-  min-height: 200px;
+  min-height: 0;
   overflow: auto;
   padding: 1rem 1.1rem;
   position: relative;
   background: var(--output-scroll-bg);
+  overscroll-behavior: contain;
+}
+
+/* Saved passwords list: explicit vertical scroll inside the pane */
+.pw-list-scroll.output-scroll {
+  min-height: 0;
 }
 
 .loading {

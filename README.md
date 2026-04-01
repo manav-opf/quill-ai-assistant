@@ -68,6 +68,22 @@ OPENAI_MODEL=gpt-4o-mini
 npm start
 ```
 
+## Build Windows Installer (Demo Share)
+
+To create a distributable Windows installer (`.exe`):
+
+```bash
+npm install
+npm run dist
+```
+
+Build output is written to the `dist` folder.
+
+Notes:
+
+- The installer does not bundle your local `.env` file by default.
+- On the demo machine, set `OPENAI_API_KEY` in environment variables if AI features are needed.
+
 ## Model Configuration
 
 The app currently targets OpenAI's Chat Completions endpoint. You can switch models with `OPENAI_MODEL` in `.env`.

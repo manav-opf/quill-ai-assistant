@@ -244,6 +244,325 @@ function clearPptWorkspace() {
   lastPptSlides = [];
 }
 
+function hidePwGateError() {
+  const el = document.getElementById('pw-gate-error');
+  el.classList.add('hidden');
+  el.textContent = '';
+}
+
+function showPwGateError(message) {
+  const el = document.getElementById('pw-gate-error');
+  el.textContent = message;
+  el.classList.remove('hidden');
+}
+
+function clearPasswordForm() {
+  document.getElementById('pw-entry-id').value = '';
+  document.getElementById('pw-title').value = '';
+  document.getElementById('pw-username').value = '';
+  document.getElementById('pw-password').value = '';
+  document.getElementById('pw-url').value = '';
+  document.getElementById('pw-notes').value = '';
+  document.getElementById('pw-form-heading').textContent = 'New entry';
+}
+
+function clearPasswordWorkspace() {
+  hidePwGateError();
+  document.getElementById('pw-master-new').value = '';
+  document.getElementById('pw-master-confirm').value = '';
+  document.getElementById('pw-master-unlock').value = '';
+  clearPasswordForm();
+  document.getElementById('pw-search').value = '';
+}
+
+let pwEntriesCache = [];
+
+function getPasswordApi() {
+  const api = window.electronAPI;
+  if (!api?.passwordVaultStatus) {
+    throw new Error('Password vault is not available. Check preload.');
+  }
+  return api;
+}
+
+async function refreshPasswordVaultGate() {
+  const api = getPasswordApi();
+  hidePwGateError();
+  try {
+    const st = await api.passwordVaultStatus();
+    if (!st.ok) {
+      showPwGateError(st.error || 'Could not read vault status.');
+      return;
+    }
+    if (st.unlocked) {
+      document.getElementById('pw-locked').classList.add('hidden');
+      document.getElementById('pw-open').classList.remove('hidden');
+      await refreshPasswordList();
+      return;
+    }
+    document.getElementById('pw-open').classList.add('hidden');
+    document.getElementById('pw-locked').classList.remove('hidden');
+    pwEntriesCache = [];
+    document.getElementById('pw-list').innerHTML = '';
+    document.getElementById('pw-list-empty').classList.remove('hidden');
+    if (st.exists) {
+      document.getElementById('pw-flow-create').classList.add('hidden');
+      document.getElementById('pw-flow-unlock').classList.remove('hidden');
+    } else {
+      document.getElementById('pw-flow-unlock').classList.add('hidden');
+      document.getElementById('pw-flow-create').classList.remove('hidden');
+    }
+  } catch (e) {
+    showPwGateError(e.message || String(e));
+  }
+}
+
+async function refreshPasswordList() {
+  const api = getPasswordApi();
+  const res = await api.passwordVaultList();
+  if (!res.ok) return;
+  pwEntriesCache = Array.isArray(res.entries) ? res.entries : [];
+  pwEntriesCache.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  renderPasswordList();
+}
+
+function formatPwUpdated(ts) {
+  if (ts == null || ts === '') return '';
+  try {
+    return new Date(ts).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  } catch {
+    return '';
+  }
+}
+
+const PW_ICONS = {
+  user:
+    '<svg class="pw-card-row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  link:
+    '<svg class="pw-card-row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
+  note:
+    '<svg class="pw-card-row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>',
+  copy:
+    '<svg class="pw-btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  userBtn:
+    '<svg class="pw-btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  edit:
+    '<svg class="pw-btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+  trash:
+    '<svg class="pw-btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+};
+
+function renderPasswordList() {
+  const listEl = document.getElementById('pw-list');
+  const emptyEl = document.getElementById('pw-list-empty');
+  const q = document.getElementById('pw-search').value.trim().toLowerCase();
+  const filtered = pwEntriesCache.filter((e) => {
+    if (!q) return true;
+    const hay = `${e.title} ${e.username} ${e.url} ${e.notes}`.toLowerCase();
+    return hay.includes(q);
+  });
+  if (!filtered.length) {
+    listEl.innerHTML = '';
+    emptyEl.classList.toggle('hidden', pwEntriesCache.length > 0);
+    return;
+  }
+  emptyEl.classList.add('hidden');
+  listEl.innerHTML = filtered
+    .map((e) => {
+      const title = e.title || 'Untitled';
+      const initialRaw = title.trim().charAt(0) || '?';
+      const initial = escapeHtml(initialRaw.toLocaleUpperCase());
+      const when = formatPwUpdated(e.updatedAt);
+      const whenHtml = when
+        ? `<div class="pw-card-updated">Updated · ${escapeHtml(when)}</div>`
+        : '';
+      const userRow = e.username
+        ? `<div class="pw-card-row">${PW_ICONS.user}<span class="pw-card-row-text">${escapeHtml(e.username)}</span></div>`
+        : `<div class="pw-card-row">${PW_ICONS.user}<span class="pw-card-row-text meta">No username</span></div>`;
+      let urlRow = '';
+      if (e.url) {
+        const href = escapeHtml(e.url);
+        urlRow = `<div class="pw-card-row">${PW_ICONS.link}<span class="pw-card-row-text"><a href="${href}" target="_blank" rel="noopener noreferrer">${href}</a></span></div>`;
+      }
+      const notesBlock = e.notes
+        ? `<div class="pw-card-notes">${PW_ICONS.note}<p class="pw-card-notes-text">${escapeHtml(e.notes)}</p></div>`
+        : '';
+      return `
+    <div class="pw-card" role="listitem" data-pw-id="${escapeHtml(e.id)}">
+      <div class="pw-card-inner">
+        <div class="pw-card-top">
+          <div class="pw-card-avatar" aria-hidden="true">${initial}</div>
+          <div class="pw-card-main">
+            <h3 class="pw-card-title">${escapeHtml(title)}</h3>
+            ${whenHtml}
+            <div class="pw-card-rows">
+              ${userRow}
+              ${urlRow}
+            </div>
+            ${notesBlock}
+          </div>
+        </div>
+        <div class="pw-card-actions">
+          <button type="button" class="btn btn-ghost btn-sm btn-pw-copy-pass" data-id="${escapeHtml(e.id)}">${PW_ICONS.copy}<span>Password</span></button>
+          <button type="button" class="btn btn-ghost btn-sm btn-pw-copy-user" data-id="${escapeHtml(e.id)}">${PW_ICONS.userBtn}<span>Username</span></button>
+          <button type="button" class="btn btn-ghost btn-sm btn-pw-edit" data-id="${escapeHtml(e.id)}">${PW_ICONS.edit}<span>Edit</span></button>
+          <button type="button" class="btn btn-clear-header btn-sm btn-pw-delete" data-id="${escapeHtml(e.id)}">${PW_ICONS.trash}<span>Delete</span></button>
+        </div>
+      </div>
+    </div>`;
+    })
+    .join('');
+
+  listEl.querySelectorAll('.btn-pw-copy-pass').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-id');
+      try {
+        const api = getPasswordApi();
+        const r = await api.passwordVaultCopyPassword({ id });
+        if (!r.ok) throw new Error(r.error || 'Copy failed');
+      } catch (err) {
+        alert(err.message || String(err));
+      }
+    });
+  });
+  listEl.querySelectorAll('.btn-pw-copy-user').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-id');
+      const entry = pwEntriesCache.find((x) => x.id === id);
+      if (!entry?.username) return;
+      try {
+        await navigator.clipboard.writeText(entry.username);
+      } catch {
+        alert('Could not copy username.');
+      }
+    });
+  });
+  listEl.querySelectorAll('.btn-pw-edit').forEach((btn) => {
+    btn.addEventListener('click', () => void loadPasswordEntryForEdit(btn.getAttribute('data-id')));
+  });
+  listEl.querySelectorAll('.btn-pw-delete').forEach((btn) => {
+    btn.addEventListener('click', () => void deletePasswordEntry(btn.getAttribute('data-id')));
+  });
+}
+
+async function loadPasswordEntryForEdit(id) {
+  const entry = pwEntriesCache.find((x) => x.id === id);
+  if (!entry) return;
+  document.getElementById('pw-entry-id').value = entry.id;
+  document.getElementById('pw-title').value = entry.title || '';
+  document.getElementById('pw-username').value = entry.username || '';
+  document.getElementById('pw-url').value = entry.url || '';
+  document.getElementById('pw-notes').value = entry.notes || '';
+  document.getElementById('pw-form-heading').textContent = 'Edit entry';
+  try {
+    const api = getPasswordApi();
+    const r = await api.passwordVaultGetPassword({ id: entry.id });
+    if (!r.ok) throw new Error(r.error || 'Could not read password');
+    document.getElementById('pw-password').value = r.password || '';
+  } catch (e) {
+    document.getElementById('pw-password').value = '';
+    alert(e.message || String(e));
+  }
+}
+
+async function deletePasswordEntry(id) {
+  if (!window.confirm('Delete this entry? This cannot be undone.')) return;
+  try {
+    const api = getPasswordApi();
+    const r = await api.passwordVaultDelete({ id });
+    if (!r.ok) throw new Error(r.error || 'Delete failed');
+    clearPasswordForm();
+    await refreshPasswordList();
+  } catch (e) {
+    alert(e.message || String(e));
+  }
+}
+
+document.getElementById('btn-pw-create').addEventListener('click', async () => {
+  hidePwGateError();
+  try {
+    const api = getPasswordApi();
+    const masterPassword = document.getElementById('pw-master-new').value;
+    const confirmPassword = document.getElementById('pw-master-confirm').value;
+    const r = await api.passwordVaultCreate({ masterPassword, confirmPassword });
+    if (!r.ok) throw new Error(r.error || 'Could not create vault');
+    document.getElementById('pw-master-new').value = '';
+    document.getElementById('pw-master-confirm').value = '';
+    await refreshPasswordVaultGate();
+  } catch (e) {
+    showPwGateError(e.message || String(e));
+  }
+});
+
+document.getElementById('btn-pw-unlock').addEventListener('click', async () => {
+  hidePwGateError();
+  try {
+    const api = getPasswordApi();
+    const masterPassword = document.getElementById('pw-master-unlock').value;
+    const r = await api.passwordVaultUnlock({ masterPassword });
+    if (!r.ok) throw new Error(r.error || 'Could not unlock');
+    document.getElementById('pw-master-unlock').value = '';
+    await refreshPasswordVaultGate();
+  } catch (e) {
+    showPwGateError(e.message || String(e));
+  }
+});
+
+document.getElementById('btn-pw-lock').addEventListener('click', async () => {
+  try {
+    const api = getPasswordApi();
+    await api.passwordVaultLock();
+    clearPasswordForm();
+    await refreshPasswordVaultGate();
+  } catch (e) {
+    alert(e.message || String(e));
+  }
+});
+
+document.getElementById('btn-pw-new').addEventListener('click', () => {
+  clearPasswordForm();
+});
+
+document.getElementById('btn-pw-generate').addEventListener('click', async () => {
+  try {
+    const api = getPasswordApi();
+    const len = document.getElementById('pw-gen-length').value;
+    const r = await api.passwordVaultGenerate({ length: len });
+    if (!r.ok) throw new Error(r.error || 'Generate failed');
+    document.getElementById('pw-password').value = r.password || '';
+  } catch (e) {
+    alert(e.message || String(e));
+  }
+});
+
+document.getElementById('pw-show-password').addEventListener('change', (ev) => {
+  const input = document.getElementById('pw-password');
+  input.type = ev.target.checked ? 'text' : 'password';
+});
+
+document.getElementById('btn-pw-save').addEventListener('click', async () => {
+  try {
+    const api = getPasswordApi();
+    const id = document.getElementById('pw-entry-id').value.trim();
+    const payload = {
+      id: id || undefined,
+      title: document.getElementById('pw-title').value,
+      username: document.getElementById('pw-username').value,
+      password: document.getElementById('pw-password').value,
+      url: document.getElementById('pw-url').value,
+      notes: document.getElementById('pw-notes').value,
+    };
+    const r = await api.passwordVaultSaveEntry(payload);
+    if (!r.ok) throw new Error(r.error || 'Save failed');
+    clearPasswordForm();
+    await refreshPasswordList();
+  } catch (e) {
+    alert(e.message || String(e));
+  }
+});
+
+document.getElementById('pw-search').addEventListener('input', () => renderPasswordList());
+
 function getActiveTabName() {
   const t = document.querySelector('.tab.active');
   return t ? t.dataset.tab : 'meeting';
@@ -316,6 +635,9 @@ document.querySelectorAll('.tab').forEach((tab) => {
       p.classList.toggle('active', active);
       p.hidden = !active;
     });
+    if (name === 'passwords') {
+      void refreshPasswordVaultGate();
+    }
   });
 });
 
@@ -324,6 +646,7 @@ document.getElementById('btn-clear-workspace').addEventListener('click', () => {
   const tab = getActiveTabName();
   if (tab === 'email') clearEmailWorkspace();
   else if (tab === 'ppt') clearPptWorkspace();
+  else if (tab === 'passwords') clearPasswordWorkspace();
   else clearMeetingWorkspace();
 });
 
