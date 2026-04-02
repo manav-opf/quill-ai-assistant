@@ -121,13 +121,15 @@ Examples:
 
 ## Project Structure
 
-| File | Purpose |
+| Path | Purpose |
 | --- | --- |
-| `main.js` | Electron main process, OpenAI proxy, PPT generation/export |
-| `preload.js` | Safe bridge (`openaiChat`, `savePPTX`) to renderer |
-| `renderer.js` | UI logic, prompt construction, parsing, button handlers |
-| `index.html` | App layout and controls |
-| `styles.css` | Visual design, responsive layout, theming |
+| `src/main.js` | Electron main process, OpenAI proxy, PPT generation/export |
+| `src/preload.js` | Safe bridge (`openaiChat`, `savePPTX`, password vault) to renderer |
+| `src/renderer/index.html` | App layout and controls |
+| `src/renderer/styles.css` | Visual design, responsive layout, theming |
+| `src/renderer/js/app.js` | Renderer entry (loads feature script as ES module) |
+| `src/renderer/js/renderer.js` | UI logic, prompts, parsing, tab handlers |
+| `assets/` | App icons |
 | `.env.example` | Example environment variable template |
 
 ## Security Notes

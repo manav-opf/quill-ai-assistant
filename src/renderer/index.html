@@ -139,6 +139,13 @@
           </svg>
           <span>Passwords</span>
         </button>
+        <button type="button" class="tab" data-tab="notes" role="tab" aria-selected="false" aria-controls="panel-notes" id="tab-notes">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+          </svg>
+          <span>Notes</span>
+        </button>
       </div>
     </nav>
 
@@ -170,42 +177,44 @@
               </button>
             </div>
           </div>
-          <textarea id="meeting-input" class="textarea" rows="14" placeholder="Paste your meeting transcript here…" spellcheck="true"></textarea>
-          <div class="customize-block">
-            <label for="meeting-analysis-custom">Customize analysis <span class="label-hint">(optional)</span></label>
-            <textarea
-              id="meeting-analysis-custom"
-              class="textarea textarea-custom"
-              rows="3"
-              placeholder="e.g. Prioritize security risks · Use UK date format · Keep summary under 3 sentences…"
-              spellcheck="true"
-            ></textarea>
-          </div>
-          <div class="customize-block">
-            <label for="followup-custom">Customize follow-up email <span class="label-hint">(optional)</span></label>
-            <textarea
-              id="followup-custom"
-              class="textarea textarea-custom textarea-custom-muted"
-              rows="2"
-              placeholder="e.g. More formal · CC legal · Bullet list of owners only…"
-              spellcheck="true"
-            ></textarea>
-          </div>
-          <div class="actions-row">
-            <button type="button" class="btn btn-primary" id="btn-analyze">
-              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-                <path d="M19 3v4M21 5h-4" />
-              </svg>
-              <span>Analyze Meeting</span>
-            </button>
-            <button type="button" class="btn btn-secondary" id="btn-followup-email" disabled>
-              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                <path d="m22 6-10 7L2 6" />
-              </svg>
-              <span>Follow-up Email</span>
-            </button>
+          <div class="pane-input-body">
+            <textarea id="meeting-input" class="textarea" rows="14" placeholder="Paste your meeting transcript here…" spellcheck="true"></textarea>
+            <div class="customize-block">
+              <label for="meeting-analysis-custom">Customize analysis <span class="label-hint">(optional)</span></label>
+              <textarea
+                id="meeting-analysis-custom"
+                class="textarea textarea-custom"
+                rows="3"
+                placeholder="e.g. Prioritize security risks · Use UK date format · Keep summary under 3 sentences…"
+                spellcheck="true"
+              ></textarea>
+            </div>
+            <div class="customize-block">
+              <label for="followup-custom">Customize follow-up email <span class="label-hint">(optional)</span></label>
+              <textarea
+                id="followup-custom"
+                class="textarea textarea-custom textarea-custom-muted"
+                rows="2"
+                placeholder="e.g. More formal · CC legal · Bullet list of owners only…"
+                spellcheck="true"
+              ></textarea>
+            </div>
+            <div class="actions-row">
+              <button type="button" class="btn btn-primary" id="btn-analyze">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+                  <path d="M19 3v4M21 5h-4" />
+                </svg>
+                <span>Analyze Meeting</span>
+              </button>
+              <button type="button" class="btn btn-secondary" id="btn-followup-email" disabled>
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                  <path d="m22 6-10 7L2 6" />
+                </svg>
+                <span>Follow-up Email</span>
+              </button>
+            </div>
           </div>
         </div>
         <div class="pane pane-output glass">
@@ -266,38 +275,40 @@
               </button>
             </div>
           </div>
-          <textarea id="email-input" class="textarea" rows="12" placeholder="Paste email or support ticket…" spellcheck="true"></textarea>
-          <div class="field-row">
-            <label for="tone-select">
-              <svg class="icon icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-              </svg>
-              Tone
-            </label>
-            <select id="tone-select" class="select">
-              <option value="Professional">Professional</option>
-              <option value="Friendly">Friendly</option>
-              <option value="Assertive">Assertive</option>
-            </select>
-          </div>
-          <div class="customize-block">
-            <label for="email-reply-custom">Customize reply <span class="label-hint">(optional)</span></label>
-            <textarea
-              id="email-reply-custom"
-              class="textarea textarea-custom"
-              rows="3"
-              placeholder="e.g. Offer a call this week · Mention our refund policy · Keep under 150 words…"
-              spellcheck="true"
-            ></textarea>
-          </div>
-          <div class="actions-row">
-            <button type="button" class="btn btn-primary" id="btn-generate-reply">
-              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="m22 2-7 20-4-9-9-4Z" />
-                <path d="M22 2 11 13" />
-              </svg>
-              <span>Generate Reply</span>
-            </button>
+          <div class="pane-input-body">
+            <textarea id="email-input" class="textarea" rows="12" placeholder="Paste email or support ticket…" spellcheck="true"></textarea>
+            <div class="field-row">
+              <label for="tone-select">
+                <svg class="icon icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                </svg>
+                Tone
+              </label>
+              <select id="tone-select" class="select">
+                <option value="Professional">Professional</option>
+                <option value="Friendly">Friendly</option>
+                <option value="Assertive">Assertive</option>
+              </select>
+            </div>
+            <div class="customize-block">
+              <label for="email-reply-custom">Customize reply <span class="label-hint">(optional)</span></label>
+              <textarea
+                id="email-reply-custom"
+                class="textarea textarea-custom"
+                rows="3"
+                placeholder="e.g. Offer a call this week · Mention our refund policy · Keep under 150 words…"
+                spellcheck="true"
+              ></textarea>
+            </div>
+            <div class="actions-row">
+              <button type="button" class="btn btn-primary" id="btn-generate-reply">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="m22 2-7 20-4-9-9-4Z" />
+                  <path d="M22 2 11 13" />
+                </svg>
+                <span>Generate Reply</span>
+              </button>
+            </div>
           </div>
         </div>
         <div class="pane pane-output glass">
@@ -359,52 +370,54 @@
               </button>
             </div>
           </div>
-          <textarea
-            id="ppt-input"
-            class="textarea"
-            rows="14"
-            placeholder="Paste notes, an outline, or any content you want turned into slides…"
-            spellcheck="true"
-          ></textarea>
-          <div class="field-row field-row-ppt">
-            <label for="ppt-template-select">
-              <svg class="icon icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M4 5h16M4 12h16M4 19h10" />
-              </svg>
-              Template
-            </label>
-            <select id="ppt-template-select" class="select">
-              <option value="modern">Modern Gradient</option>
-              <option value="minimal">Minimal Clean</option>
-              <option value="dark">Dark Pro</option>
-            </select>
-            <label for="ppt-slide-count">Slides</label>
-            <input
-              id="ppt-slide-count"
-              class="input-num"
-              type="number"
-              min="3"
-              max="12"
-              step="1"
-              value="6"
-            />
-          </div>
-          <div class="actions-row">
-            <button type="button" class="btn btn-primary" id="btn-generate-slides">
-              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-                <path d="M19 3v4M21 5h-4" />
-              </svg>
-              <span>Generate Slides</span>
-            </button>
-            <button type="button" class="btn btn-secondary" id="btn-download-ppt" disabled title="Save .pptx after generating slides">
-              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-              <span>Download PPT</span>
-            </button>
+          <div class="pane-input-body">
+            <textarea
+              id="ppt-input"
+              class="textarea"
+              rows="14"
+              placeholder="Paste notes, an outline, or any content you want turned into slides…"
+              spellcheck="true"
+            ></textarea>
+            <div class="field-row field-row-ppt">
+              <label for="ppt-template-select">
+                <svg class="icon icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M4 5h16M4 12h16M4 19h10" />
+                </svg>
+                Template
+              </label>
+              <select id="ppt-template-select" class="select">
+                <option value="modern">Modern Gradient</option>
+                <option value="minimal">Minimal Clean</option>
+                <option value="dark">Dark Pro</option>
+              </select>
+              <label for="ppt-slide-count">Slides</label>
+              <input
+                id="ppt-slide-count"
+                class="input-num"
+                type="number"
+                min="3"
+                max="12"
+                step="1"
+                value="6"
+              />
+            </div>
+            <div class="actions-row">
+              <button type="button" class="btn btn-primary" id="btn-generate-slides">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+                  <path d="M19 3v4M21 5h-4" />
+                </svg>
+                <span>Generate Slides</span>
+              </button>
+              <button type="button" class="btn btn-secondary" id="btn-download-ppt" disabled title="Save .pptx after generating slides">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                <span>Download PPT</span>
+              </button>
+            </div>
           </div>
         </div>
         <div class="pane pane-output glass">
@@ -495,7 +508,8 @@
             </div>
           </div>
           <input type="hidden" id="pw-entry-id" value="" />
-          <div class="pw-form-body">
+          <div class="pane-input-body">
+            <div class="pw-form-body">
             <div class="pw-field">
               <label class="pw-field-label" for="pw-title">
                 <svg class="pw-field-label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -610,15 +624,16 @@
                 <textarea id="pw-notes" class="textarea textarea-custom pw-input-inner pw-notes-input" rows="3" placeholder="Recovery codes, security questions, hints…" spellcheck="true"></textarea>
               </div>
             </div>
-          </div>
-          <div class="actions-row">
-            <button type="button" class="btn btn-primary" id="btn-pw-save">
-              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                <path d="M17 21v-8H7v8M7 3v5h8" />
-              </svg>
-              <span>Save entry</span>
-            </button>
+            </div>
+            <div class="actions-row">
+              <button type="button" class="btn btn-primary" id="btn-pw-save">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                  <path d="M17 21v-8H7v8M7 3v5h8" />
+                </svg>
+                <span>Save entry</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -651,6 +666,144 @@
       </div>
     </section>
 
+    <!-- Notes -->
+    <section id="panel-notes" class="panel" role="tabpanel" hidden aria-labelledby="tab-notes">
+      <div class="split notes-split">
+        <div class="pane glass notes-sidebar">
+          <div class="pane-header">
+            <h2>
+              <svg class="icon icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+              </svg>
+              My notes
+            </h2>
+            <div class="toolbar">
+              <button type="button" class="btn btn-primary btn-sm" id="btn-notes-new" title="Create a new note">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                <span>New</span>
+              </button>
+            </div>
+          </div>
+          <div class="notes-search-row">
+            <div class="pw-search-wrap notes-search-wrap-inner">
+              <span class="pw-search-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="M21 21l-4.35-4.35" />
+                </svg>
+              </span>
+              <input id="notes-search" class="input-text pw-search-input notes-search-input" type="search" placeholder="Search notes…" autocomplete="off" />
+            </div>
+          </div>
+          <div class="output-scroll notes-list-scroll">
+            <div id="notes-list" class="notes-list" role="list"></div>
+            <p id="notes-list-empty" class="notes-list-empty hidden">No notes yet. Click <strong>New</strong> to start.</p>
+          </div>
+        </div>
+
+        <div class="pane glass notes-editor-pane">
+          <div class="pane-header notes-editor-header">
+            <label class="sr-only" for="notes-title-input">Note title</label>
+            <input
+              id="notes-title-input"
+              class="notes-title-input"
+              type="text"
+              placeholder="Untitled note"
+              autocomplete="off"
+              disabled
+            />
+            <div class="toolbar notes-editor-toolbar">
+              <label class="notes-grammar-toggle" title="When on, you can run a grammar check (uses OpenAI; sends note text)">
+                <input type="checkbox" id="notes-grammar-enabled" />
+                <span class="notes-grammar-toggle-ui" aria-hidden="true"></span>
+                <span class="notes-grammar-toggle-label">Grammar assist</span>
+              </label>
+              <button type="button" class="btn btn-secondary btn-sm hidden" id="btn-notes-grammar-check" disabled>
+                Check grammar
+              </button>
+            </div>
+          </div>
+          <div class="notes-toolbar" id="notes-toolbar" aria-label="Text formatting">
+            <div class="notes-toolbar-row">
+              <button type="button" class="notes-fmt-btn" data-cmd="bold" title="Bold">B</button>
+              <button type="button" class="notes-fmt-btn" data-cmd="italic" title="Italic">I</button>
+              <button type="button" class="notes-fmt-btn" data-cmd="underline" title="Underline">U</button>
+              <button type="button" class="notes-fmt-btn" data-cmd="strikeThrough" title="Strikethrough">S</button>
+              <span class="notes-toolbar-divider" aria-hidden="true"></span>
+              <span class="notes-toolbar-label">Color</span>
+              <button type="button" class="notes-color-swatch notes-swatch-white" data-cmd="foreColor" data-value="#ffffff" style="--notes-swatch: #ffffff" title="White"></button>
+              <button type="button" class="notes-color-swatch" data-cmd="foreColor" data-value="#0a0a0a" style="--notes-swatch: #0a0a0a" title="Black"></button>
+              <button type="button" class="notes-color-swatch" data-cmd="foreColor" data-value="#6b7280" style="--notes-swatch: #6b7280" title="Grey"></button>
+              <button type="button" class="notes-color-swatch" data-cmd="foreColor" data-value="#eab308" style="--notes-swatch: #eab308" title="Yellow"></button>
+              <button type="button" class="notes-color-swatch" data-cmd="foreColor" data-value="#2563eb" style="--notes-swatch: #2563eb" title="Blue"></button>
+              <button type="button" class="notes-color-swatch" data-cmd="foreColor" data-value="#16a34a" style="--notes-swatch: #16a34a" title="Green"></button>
+              <button type="button" class="notes-color-swatch" data-cmd="foreColor" data-value="#06b6d4" style="--notes-swatch: #06b6d4" title="Cyan"></button>
+              <button type="button" class="notes-color-swatch" data-cmd="foreColor" data-value="#ec4899" style="--notes-swatch: #ec4899" title="Pink"></button>
+              <button type="button" class="notes-color-swatch" data-cmd="foreColor" data-value="#dc2626" style="--notes-swatch: #dc2626" title="Red"></button>
+              <button type="button" class="notes-color-swatch" data-cmd="foreColor" data-value="#ea580c" style="--notes-swatch: #ea580c" title="Orange"></button>
+              <label class="notes-color-custom" title="Custom color">
+                <input type="color" id="notes-color-custom" value="#0d9488" tabindex="-1" />
+                <span class="notes-color-custom-label" aria-hidden="true">+</span>
+              </label>
+              <span class="notes-toolbar-divider" aria-hidden="true"></span>
+              <button type="button" class="notes-fmt-btn notes-fmt-block" data-cmd="formatBlock" data-value="h2" title="Heading">Heading</button>
+              <button type="button" class="notes-fmt-btn notes-fmt-block" data-cmd="formatBlock" data-value="h3" title="Subheading">Subheading</button>
+              <button type="button" class="notes-fmt-btn notes-fmt-block" data-cmd="formatBlock" data-value="p" title="Normal paragraph">Normal</button>
+              <span class="notes-toolbar-divider" aria-hidden="true"></span>
+              <span class="notes-toolbar-label">Lists</span>
+              <button type="button" class="notes-fmt-btn notes-fmt-block notes-fmt-icon" data-cmd="insertUnorderedList" title="Bulleted list" aria-label="Bulleted list">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="8" y1="6" x2="21" y2="6" />
+                  <line x1="8" y1="12" x2="21" y2="12" />
+                  <line x1="8" y1="18" x2="21" y2="18" />
+                  <circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none" />
+                  <circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none" />
+                  <circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none" />
+                </svg>
+              </button>
+              <button type="button" class="notes-fmt-btn notes-fmt-block notes-fmt-icon" data-cmd="insertOrderedList" title="Numbered list" aria-label="Numbered list">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="10" y1="6" x2="21" y2="6" />
+                  <line x1="10" y1="12" x2="21" y2="12" />
+                  <line x1="10" y1="18" x2="21" y2="18" />
+                  <path d="M4 10h2" />
+                  <path d="M4 6v4" />
+                  <path d="M6 18H4" />
+                  <path d="M4 14v4" />
+                  <path d="M4 14l2 2" />
+                  <path d="M4 16l2-2" />
+                  <path d="M7 21h-4" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div id="notes-grammar-panel" class="notes-grammar-panel hidden" role="region" aria-label="Grammar suggestions">
+            <p id="notes-grammar-status" class="notes-grammar-status"></p>
+            <p class="notes-grammar-warn">
+              Applying corrections keeps paragraphs, bullet lists, numbered lists, and headings. Bold, colors, and other inline formatting inside lines may be removed.
+            </p>
+            <div class="notes-grammar-actions">
+              <button type="button" class="btn btn-primary btn-sm" id="btn-notes-grammar-apply" disabled>Apply corrections</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-notes-grammar-dismiss">Dismiss</button>
+            </div>
+          </div>
+          <div
+            id="notes-body"
+            class="notes-body-editable notes-body-empty"
+            contenteditable="false"
+            role="textbox"
+            aria-multiline="true"
+            aria-label="Note content"
+            data-placeholder="Start writing… Notes save automatically on this device."
+            spellcheck="true"
+          ></div>
+        </div>
+      </div>
+    </section>
+
     <footer class="app-footer" role="contentinfo">
       <div class="footer-inner">
         <span class="footer-line">© 2026 Quill. All rights reserved.</span>
@@ -659,6 +812,6 @@
       </div>
     </footer>
 
-    <script src="renderer.js"></script>
+    <script type="module" src="js/app.js"></script>
   </body>
 </html>

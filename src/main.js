@@ -154,7 +154,7 @@ function generatePassword(length = 20) {
 }
 
 // Load .env from project root when present
-require('dotenv').config({ path: path.join(__dirname, '.env') });
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const DEFAULT_MODEL = 'gpt-4o-mini';
@@ -197,7 +197,7 @@ function pptTemplateConfig(template) {
 }
 
 function createWindow() {
-  const winIconPath = path.join(__dirname, 'assets', 'icon.png');
+  const winIconPath = path.join(__dirname, '..', 'assets', 'icon.png');
   mainWindow = new BrowserWindow({
     width: 1100,
     height: 780,
@@ -215,7 +215,7 @@ function createWindow() {
   });
 
   mainWindow.once('ready-to-show', () => mainWindow.show());
-  mainWindow.loadFile('index.html');
+  mainWindow.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 }
 
 /**

@@ -1,5 +1,25 @@
+import {
+  MEETING_SYSTEM_PROMPT,
+  SAMPLE_MEETING,
+  SAMPLE_EMAIL,
+  PPT_TEMPLATE_LABELS,
+  SAMPLE_PPT_CONTENT,
+  PW_ICONS,
+  NOTES_STORAGE_KEY,
+  NOTES_GRAMMAR_PREF_KEY,
+  NOTES_GRAMMAR_MAX_CHARS,
+  NOTES_GRAMMAR_SYSTEM,
+  THEME_PREF_KEY,
+} from './constants.js';
+
 /**
  * Renderer — UI logic, OpenAI calls via preload bridge (callAI).
+ *
+ * File map (search for section headers `// ---`):
+ * Meeting · Email · PPT · Passwords · Notes (incl. grammar) · Tabs · Clear · Theme
+ *
+ * Project layout: `src/main.js`, `src/preload.js`, `src/renderer/` (HTML, CSS, this file).
+ * Static strings and keys: `constants.js`.
  */
 
 // Last parsed meeting result (for follow-up email)
@@ -8,86 +28,13 @@ let lastMeetingActions = [];
 // Last generated PPT slide data (for download)
 let lastPptSlides = [];
 
-/** Meeting analysis system prompt (user-specified JSON shape). */
-const MEETING_SYSTEM_PROMPT = `Extract the following from the meeting transcript:
-1. Summary (short paragraph)
-2. Action items (list)
-3. Owner for each action (if available)
-4. Deadlines (if mentioned)
-
-Return ONLY valid JSON in this format:
-{
-  "summary": "",
-  "actions": [
-    {
-      "task": "",
-      "owner": "",
-      "deadline": ""
-    }
-  ]
-}`;
-
-const SAMPLE_MEETING = `Team Sync — March 28, 2026
-
-Alex: Thanks everyone. Quick standup on the billing rollout.
-
-Jordan: API migration is done. We need QA to run regression by Friday EOD.
-
-Alex: Great. Sam, can you own the client comms?
-
-Sam: Yes. I'll send the notice to enterprise customers by Thursday.
-
-Jordan: There's one blocker — the legacy webhook still times out. I'll pair with Morgan today to fix it.
-
-Morgan: Works for me. Target fix by Wednesday COB.
-
-Alex: Perfect. Reminder: design review for the dashboard refresh is Monday 10am. Priya, you'll present.
-
-Priya: On it. I'll share the Figma link tomorrow morning.
-
-Alex: Cool. Anything else?
-
-Sam: We should document the rollback steps. I'll draft and share by end of week.
-
-Alex: Thanks. Let's ship it.`;
-
-const SAMPLE_EMAIL = `Subject: Invoice #8842 — payment not reflected
-
-Hi Support,
-
-I paid invoice #8842 last Tuesday via ACH. The money left my bank but your portal still shows "Outstanding". Our accounting team needs this cleared before month-end close.
-
-Please confirm receipt and update the status, or let me know what reference number you need.
-
-Thanks,
-Riley Chen
-Finance Ops, Northwind LLC`;
-
-const PPT_TEMPLATE_LABELS = {
-  modern: 'Modern Gradient',
-  minimal: 'Minimal Clean',
-  dark: 'Dark Pro',
-};
-
-const SAMPLE_PPT_CONTENT = `Internal pitch: Quill rollout (Q2)
-
-We are launching Quill as the default desktop assistant for meeting notes and customer email drafts. Goals: cut follow-up time by 40%, standardize action tracking, and reduce tone inconsistencies in support replies.
-
-Target users: team leads, PMs, and tier-1 support. Success metrics: weekly active users, average time from meeting end to summary sent, and CSAT on outbound replies.
-
-Rollout in three waves: pilot (50 users), department expansion, then company-wide. Training will be two short videos plus office hours.
-
-Risks: API cost spikes, change management fatigue, and privacy questions about transcripts. Mitigations: usage dashboards, executive sponsors, and clear data-handling FAQ.
-
-Ask: approve pilot headcount and comms plan by Friday. Next step: schedule kickoff with IT for SSO-ready builds.`;
-
 /**
  * Calls OpenAI via main process (fetch + API key stay in main).
  * @param {string} userContent - User message content
  * @param {string} [systemContent] - Optional system message
  * @returns {Promise<string>}
  */
-async function callAI(userContent, systemContent) {
+async function callAI(userContent, systemContent, aiOptions = {}) {
   const api = window.electronAPI;
   if (!api?.openaiChat) {
     throw new Error('electronAPI.openaiChat is not available. Check preload and contextIsolation.');
@@ -99,7 +46,8 @@ async function callAI(userContent, systemContent) {
   }
   messages.push({ role: 'user', content: userContent });
 
-  const result = await api.openaiChat(messages, { temperature: 0.4 });
+  const temperature = typeof aiOptions.temperature === 'number' ? aiOptions.temperature : 0.4;
+  const result = await api.openaiChat(messages, { temperature });
   if (!result.ok) {
     throw new Error(result.error || 'Unknown API error');
   }
@@ -334,23 +282,6 @@ function formatPwUpdated(ts) {
     return '';
   }
 }
-
-const PW_ICONS = {
-  user:
-    '<svg class="pw-card-row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
-  link:
-    '<svg class="pw-card-row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
-  note:
-    '<svg class="pw-card-row-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>',
-  copy:
-    '<svg class="pw-btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
-  userBtn:
-    '<svg class="pw-btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
-  edit:
-    '<svg class="pw-btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
-  trash:
-    '<svg class="pw-btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
-};
 
 function renderPasswordList() {
   const listEl = document.getElementById('pw-list');
@@ -621,10 +552,665 @@ function enforceSlideCount(slides, count) {
   return normalized;
 }
 
+// --- Notes (localStorage, this device only) ---
+let notesList = [];
+let activeNoteId = null;
+let notesFlushTimer = null;
+let notesGrammarPendingCorrected = null;
+
+function loadNotesGrammarPref() {
+  try {
+    return localStorage.getItem(NOTES_GRAMMAR_PREF_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function saveNotesGrammarPref(on) {
+  try {
+    if (on) localStorage.setItem(NOTES_GRAMMAR_PREF_KEY, 'true');
+    else localStorage.removeItem(NOTES_GRAMMAR_PREF_KEY);
+  } catch (e) {
+    console.warn('Could not save grammar assist preference', e);
+  }
+}
+
+function parseNotesGrammarOutput(raw) {
+  const t = String(raw).trim();
+  const mark = '<<<CORRECTED>>>';
+  const i = t.indexOf(mark);
+  if (i === -1) {
+    const jt = extractJsonText(t);
+    try {
+      const data = JSON.parse(jt);
+      if (typeof data.corrected === 'string') return data.corrected;
+    } catch {
+      /* fall through */
+    }
+    throw new Error('Could not read grammar result. Try again.');
+  }
+  return t.slice(i + mark.length).replace(/^\s*\n/, '').trimEnd();
+}
+
+function notesGrammarDismiss() {
+  notesGrammarPendingCorrected = null;
+  const panel = document.getElementById('notes-grammar-panel');
+  const applyBtn = document.getElementById('btn-notes-grammar-apply');
+  const statusEl = document.getElementById('notes-grammar-status');
+  panel?.classList.add('hidden');
+  if (statusEl) statusEl.textContent = '';
+  if (applyBtn) applyBtn.disabled = true;
+}
+
+function updateNotesGrammarUi() {
+  const cb = document.getElementById('notes-grammar-enabled');
+  const checkBtn = document.getElementById('btn-notes-grammar-check');
+  if (!cb || !checkBtn) return;
+  const on = cb.checked;
+  const hasNote = !!activeNoteId;
+  checkBtn.classList.toggle('hidden', !on);
+  checkBtn.disabled = !on || !hasNote || checkBtn.dataset.loading === '1';
+  if (!on) notesGrammarDismiss();
+}
+
+async function runNotesGrammarCheck() {
+  const cb = document.getElementById('notes-grammar-enabled');
+  if (!cb?.checked || !activeNoteId) return;
+  const checkBtn = document.getElementById('btn-notes-grammar-check');
+  const panel = document.getElementById('notes-grammar-panel');
+  const statusEl = document.getElementById('notes-grammar-status');
+  const applyBtn = document.getElementById('btn-notes-grammar-apply');
+  if (!panel || !statusEl || !applyBtn || !checkBtn) return;
+  const el = getNotesBodyEl();
+  const gramPlain = noteHtmlToGrammarPlain(el.innerHTML);
+  const trimmed = gramPlain.trim();
+  if (!trimmed) {
+    notesGrammarPendingCorrected = null;
+    panel.classList.remove('hidden');
+    statusEl.textContent = 'Write something in the note before checking grammar.';
+    applyBtn.disabled = true;
+    return;
+  }
+  if (gramPlain.length > NOTES_GRAMMAR_MAX_CHARS) {
+    panel.classList.remove('hidden');
+    statusEl.textContent = `Note is too long for a single check (max ${NOTES_GRAMMAR_MAX_CHARS.toLocaleString()} characters). Shorten the text or split into another note.`;
+    applyBtn.disabled = true;
+    return;
+  }
+  notesGrammarPendingCorrected = null;
+  applyBtn.disabled = true;
+  panel.classList.remove('hidden');
+  statusEl.textContent = 'Checking grammar…';
+  checkBtn.dataset.loading = '1';
+  checkBtn.disabled = true;
+  try {
+    const raw = await callAI(gramPlain, NOTES_GRAMMAR_SYSTEM, { temperature: 0.15 });
+    const corrected = parseNotesGrammarOutput(raw);
+    const norm = (s) => s.replace(/\r\n/g, '\n').trim();
+    if (norm(corrected) === norm(gramPlain)) {
+      statusEl.textContent = 'No grammar or spelling changes suggested.';
+      notesGrammarPendingCorrected = null;
+      applyBtn.disabled = true;
+    } else {
+      notesGrammarPendingCorrected = corrected;
+      statusEl.textContent = 'Suggestions ready. Review the warning below, then apply if you want the corrected text.';
+      applyBtn.disabled = false;
+    }
+  } catch (e) {
+    statusEl.textContent = e.message || 'Grammar check failed.';
+    notesGrammarPendingCorrected = null;
+    applyBtn.disabled = true;
+  } finally {
+    delete checkBtn.dataset.loading;
+    updateNotesGrammarUi();
+  }
+}
+
+function applyNotesGrammarCorrections() {
+  if (notesGrammarPendingCorrected == null) return;
+  setNotesBodyHtml(grammarPlainToNoteHtml(notesGrammarPendingCorrected));
+  scheduleNotesFlush();
+  notesGrammarDismiss();
+  getNotesBodyEl().focus();
+  syncNotesToolbarActiveStates();
+}
+
+function loadNotesFromStorage() {
+  try {
+    const raw = localStorage.getItem(NOTES_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveNotesToStorage() {
+  try {
+    localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notesList));
+  } catch (e) {
+    console.warn('Could not save notes', e);
+  }
+}
+
+function getNotesBodyEl() {
+  return document.getElementById('notes-body');
+}
+
+function notesBodyToPlainText(html) {
+  if (!html || typeof html !== 'string') return '';
+  const d = document.createElement('div');
+  d.innerHTML = html;
+  return (d.textContent || '').replace(/\u00a0/g, ' ');
+}
+
+function plainTextToNoteHtml(text) {
+  const paras = String(text).split(/\n\n+/);
+  if (paras.length === 1 && !paras[0].trim()) return '<p><br></p>';
+  const parts = paras
+    .map((p) => {
+      const lines = p
+        .split('\n')
+        .map((line) => escapeHtml(line))
+        .join('<br>');
+      return `<p>${lines || '<br>'}</p>`;
+    })
+    .join('');
+  return parts || '<p><br></p>';
+}
+
+/** Plain text inside one block element (p, li, h2, …); <br> → newline */
+function noteBlockInnerPlain(el) {
+  let out = '';
+  const walk = (node) => {
+    if (!node) return;
+    if (node.nodeType === Node.TEXT_NODE) {
+      out += node.textContent;
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    const t = node.tagName.toLowerCase();
+    if (t === 'br') out += '\n';
+    else node.childNodes.forEach(walk);
+  };
+  el.childNodes.forEach(walk);
+  return out.replace(/\u00a0/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+/** List item text only (drops nested ul/ol for a stable grammar round-trip) */
+function noteListItemPlain(li) {
+  const clone = li.cloneNode(true);
+  clone.querySelectorAll('ul, ol').forEach((n) => n.remove());
+  return (clone.textContent || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Note HTML → wire format for grammar API (lists/headings preserved as plain lines).
+ */
+function noteHtmlToGrammarPlain(html) {
+  const d = document.createElement('div');
+  d.innerHTML = html || '';
+  const out = [];
+  d.childNodes.forEach((node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const t = node.textContent.replace(/\u00a0/g, ' ').trim();
+      if (t) {
+        out.push(t);
+        out.push('');
+      }
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    const tag = node.tagName.toLowerCase();
+    if (tag === 'ul') {
+      node.querySelectorAll(':scope > li').forEach((li) => {
+        const text = noteListItemPlain(li);
+        if (text) out.push(`- ${text}`);
+      });
+      out.push('');
+    } else if (tag === 'ol') {
+      let n = 1;
+      node.querySelectorAll(':scope > li').forEach((li) => {
+        const text = noteListItemPlain(li);
+        if (text) {
+          out.push(`${n}. ${text}`);
+          n += 1;
+        }
+      });
+      out.push('');
+    } else if (tag === 'p') {
+      const t = noteBlockInnerPlain(node);
+      if (t) out.push(t);
+      out.push('');
+    } else if (tag === 'h2') {
+      out.push(`## ${noteBlockInnerPlain(node)}`);
+      out.push('');
+    } else if (tag === 'h3') {
+      out.push(`### ${noteBlockInnerPlain(node)}`);
+      out.push('');
+    } else if (tag === 'div') {
+      const t = noteBlockInnerPlain(node);
+      if (t) {
+        out.push(t);
+        out.push('');
+      }
+    }
+  });
+  while (out.length && out[out.length - 1] === '') out.pop();
+  return out.join('\n');
+}
+
+function escapeLineToHtml(s) {
+  return escapeHtml(s).split('\n').join('<br>');
+}
+
+/**
+ * Grammar wire format → note HTML (paragraphs, ul, ol, h2, h3).
+ */
+function grammarPlainToNoteHtml(text) {
+  const norm = String(text || '').replace(/\r\n/g, '\n').trim();
+  if (!norm) return '<p><br></p>';
+  const lines = norm.split('\n');
+  const htmlParts = [];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (!line.trim()) {
+      i += 1;
+      continue;
+    }
+    if (/^###\s+/.test(line)) {
+      htmlParts.push(`<h3>${escapeHtml(line.replace(/^###\s+/, '').trim())}</h3>`);
+      i += 1;
+      continue;
+    }
+    if (/^##\s+/.test(line)) {
+      htmlParts.push(`<h2>${escapeHtml(line.replace(/^##\s+/, '').trim())}</h2>`);
+      i += 1;
+      continue;
+    }
+    if (/^-\s+/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^-\s+/.test(lines[i])) {
+        items.push(lines[i].replace(/^-\s+/, '').trim());
+        i += 1;
+      }
+      htmlParts.push(
+        `<ul>${items.map((it) => `<li>${escapeLineToHtml(it)}</li>`).join('')}</ul>`
+      );
+      continue;
+    }
+    if (/^\d+\.\s+/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\d+\.\s+/.test(lines[i])) {
+        items.push(lines[i].replace(/^\d+\.\s+/, '').trim());
+        i += 1;
+      }
+      htmlParts.push(
+        `<ol>${items.map((it) => `<li>${escapeLineToHtml(it)}</li>`).join('')}</ol>`
+      );
+      continue;
+    }
+    const para = [];
+    while (i < lines.length) {
+      const l = lines[i];
+      if (!l.trim()) break;
+      if (/^-\s+/.test(l) || /^\d+\.\s+/.test(l) || /^###\s+/.test(l) || /^##\s+/.test(l)) break;
+      para.push(l);
+      i += 1;
+    }
+    const ptext = para.join('\n').trim();
+    if (ptext) htmlParts.push(`<p>${escapeLineToHtml(ptext)}</p>`);
+  }
+  const joined = htmlParts.join('');
+  return joined || '<p><br></p>';
+}
+
+function noteBodyLooksLikeHtml(s) {
+  return /<[a-z][\s\S]*>/i.test(String(s).trim());
+}
+
+function setNotesBodyHtml(raw) {
+  const el = getNotesBodyEl();
+  if (!raw) {
+    el.innerHTML = '<p><br></p>';
+    updateNotesBodyEmptyClass();
+    return;
+  }
+  const s = String(raw);
+  if (noteBodyLooksLikeHtml(s)) {
+    el.innerHTML = s;
+  } else {
+    el.innerHTML = plainTextToNoteHtml(s);
+  }
+  updateNotesBodyEmptyClass();
+}
+
+function getNotesBodyHtml() {
+  return getNotesBodyEl().innerHTML;
+}
+
+function updateNotesBodyEmptyClass() {
+  const el = getNotesBodyEl();
+  const plain = notesBodyToPlainText(el.innerHTML).trim();
+  el.classList.toggle('notes-body-empty', plain.length === 0);
+}
+
+function syncNotesToolbarActiveStates() {
+  const tb = document.getElementById('notes-toolbar');
+  if (!tb) return;
+  ['bold', 'italic', 'underline', 'strikeThrough'].forEach((cmd) => {
+    const btn = tb.querySelector(`[data-cmd="${cmd}"]`);
+    if (!btn) return;
+    try {
+      const on = document.queryCommandState(cmd);
+      btn.classList.toggle('is-active', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    } catch {
+      btn.classList.remove('is-active');
+      btn.setAttribute('aria-pressed', 'false');
+    }
+  });
+  tb.querySelectorAll('[data-cmd="formatBlock"]').forEach((btn) => {
+    const want = (btn.dataset.value || '').toLowerCase();
+    let cur = '';
+    try {
+      cur = (document.queryCommandValue('formatBlock') || '').toLowerCase().replace(/[<>]/g, '');
+    } catch {
+      /* ignore */
+    }
+    const on = cur === want;
+    btn.classList.toggle('is-active', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  ['insertUnorderedList', 'insertOrderedList'].forEach((cmd) => {
+    const btn = tb.querySelector(`[data-cmd="${cmd}"]`);
+    if (!btn) return;
+    try {
+      const on = document.queryCommandState(cmd);
+      btn.classList.toggle('is-active', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    } catch {
+      btn.classList.remove('is-active');
+      btn.setAttribute('aria-pressed', 'false');
+    }
+  });
+}
+
+function notesRunCommand(cmd, value = null) {
+  const body = getNotesBodyEl();
+  if (body.getAttribute('contenteditable') !== 'true') return;
+  body.focus();
+  try {
+    if (cmd === 'formatBlock' && value) {
+      document.execCommand('formatBlock', false, value);
+    } else if (cmd === 'foreColor' && value) {
+      document.execCommand('styleWithCSS', false, true);
+      document.execCommand('foreColor', false, value);
+    } else {
+      document.execCommand(cmd, false, null);
+    }
+  } catch (e) {
+    console.warn(e);
+  }
+  updateNotesBodyEmptyClass();
+  scheduleNotesFlush();
+  syncNotesToolbarActiveStates();
+}
+
+function notePreviewLine(note) {
+  const t = String(note?.title ?? '').trim();
+  if (t) return t.length > 72 ? `${t.slice(0, 72)}…` : t;
+  const bodyText = notesBodyToPlainText(note?.body ?? '').trim();
+  const line = bodyText
+    .split('\n')
+    .map((l) => l.trim())
+    .find(Boolean);
+  if (line) return line.length > 72 ? `${line.slice(0, 72)}…` : line;
+  return 'Empty note';
+}
+
+function formatNotesUpdated(ts) {
+  if (ts == null || ts === '') return '';
+  try {
+    return new Date(ts).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  } catch {
+    return '';
+  }
+}
+
+function flushNotesNow() {
+  if (notesFlushTimer) {
+    clearTimeout(notesFlushTimer);
+    notesFlushTimer = null;
+  }
+  if (!activeNoteId) return;
+  const i = notesList.findIndex((n) => n.id === activeNoteId);
+  if (i < 0) return;
+  notesList[i].title = document.getElementById('notes-title-input').value;
+  notesList[i].body = getNotesBodyHtml();
+  notesList[i].updatedAt = Date.now();
+  saveNotesToStorage();
+}
+
+function scheduleNotesFlush() {
+  if (notesFlushTimer) clearTimeout(notesFlushTimer);
+  notesFlushTimer = setTimeout(() => {
+    notesFlushTimer = null;
+    flushNotesNow();
+    renderNotesList();
+  }, 400);
+}
+
+function syncEditorFromActive() {
+  const n = notesList.find((x) => x.id === activeNoteId);
+  document.getElementById('notes-title-input').value = n?.title ?? '';
+  setNotesBodyHtml(n?.body ?? '');
+  syncNotesToolbarActiveStates();
+}
+
+function updateNotesEditorState() {
+  const has = !!activeNoteId;
+  document.getElementById('notes-title-input').disabled = !has;
+  getNotesBodyEl().setAttribute('contenteditable', has ? 'true' : 'false');
+  document.querySelectorAll('#notes-toolbar .notes-fmt-btn, #notes-toolbar .notes-color-swatch').forEach((el) => {
+    el.disabled = !has;
+  });
+  const colorIn = document.getElementById('notes-color-custom');
+  if (colorIn) colorIn.disabled = !has;
+  syncNotesToolbarActiveStates();
+  updateNotesGrammarUi();
+}
+
+function renderNotesList() {
+  const listEl = document.getElementById('notes-list');
+  const emptyEl = document.getElementById('notes-list-empty');
+  const q = document.getElementById('notes-search').value.trim().toLowerCase();
+  const sorted = [...notesList].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  const filtered = sorted.filter((n) => {
+    if (!q) return true;
+    const hay = `${n.title}\n${notesBodyToPlainText(n.body)}`.toLowerCase();
+    return hay.includes(q);
+  });
+  if (!filtered.length) {
+    listEl.innerHTML = '';
+    emptyEl.classList.toggle('hidden', notesList.length > 0);
+    return;
+  }
+  emptyEl.classList.add('hidden');
+  const trashSvg = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`;
+  listEl.innerHTML = filtered
+    .map((n) => {
+      const active = n.id === activeNoteId ? ' active' : '';
+      const when = formatNotesUpdated(n.updatedAt);
+      const nid = escapeHtml(n.id);
+      return `<div class="notes-list-row${active}" role="listitem">
+        <button type="button" class="notes-list-item" data-note-id="${nid}">
+          <span class="notes-list-title">${escapeHtml(notePreviewLine(n))}</span>
+          <span class="notes-list-meta">${when ? escapeHtml(when) : '—'}</span>
+        </button>
+        <button type="button" class="notes-list-delete" data-note-id="${nid}" title="Delete note" aria-label="Delete note">${trashSvg}</button>
+      </div>`;
+    })
+    .join('');
+
+  listEl.querySelectorAll('.notes-list-item').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-note-id');
+      if (id) selectNote(id);
+    });
+  });
+  listEl.querySelectorAll('.notes-list-delete').forEach((btn) => {
+    btn.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const id = btn.getAttribute('data-note-id');
+      if (id) deleteNoteById(id);
+    });
+  });
+}
+
+function selectNote(id) {
+  flushNotesNow();
+  notesGrammarDismiss();
+  activeNoteId = id;
+  syncEditorFromActive();
+  updateNotesEditorState();
+  renderNotesList();
+}
+
+function createNewNote() {
+  flushNotesNow();
+  notesGrammarDismiss();
+  const note = {
+    id: crypto.randomUUID(),
+    title: '',
+    body: '',
+    updatedAt: Date.now(),
+  };
+  notesList.push(note);
+  activeNoteId = note.id;
+  saveNotesToStorage();
+  syncEditorFromActive();
+  updateNotesEditorState();
+  renderNotesList();
+  document.getElementById('notes-title-input').focus();
+}
+
+function deleteNoteById(id) {
+  if (!id || !notesList.some((n) => n.id === id)) return;
+  if (!window.confirm('Delete this note? This cannot be undone.')) return;
+  flushNotesNow();
+  notesGrammarDismiss();
+  const wasActive = activeNoteId === id;
+  notesList = notesList.filter((n) => n.id !== id);
+  saveNotesToStorage();
+  if (wasActive) {
+    const sorted = [...notesList].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+    activeNoteId = sorted[0]?.id ?? null;
+    syncEditorFromActive();
+  }
+  updateNotesEditorState();
+  renderNotesList();
+}
+
+function initNotesTab() {
+  notesList = loadNotesFromStorage();
+  if (activeNoteId && !notesList.some((n) => n.id === activeNoteId)) {
+    activeNoteId = null;
+  }
+  if (!activeNoteId && notesList.length) {
+    const sorted = [...notesList].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+    activeNoteId = sorted[0].id;
+  }
+  syncEditorFromActive();
+  updateNotesEditorState();
+  renderNotesList();
+}
+
+function clearNotesWorkspace() {
+  document.getElementById('notes-search').value = '';
+  flushNotesNow();
+  notesGrammarDismiss();
+  if (activeNoteId) {
+    const i = notesList.findIndex((n) => n.id === activeNoteId);
+    if (i >= 0) {
+      notesList[i].title = '';
+      notesList[i].body = '';
+      notesList[i].updatedAt = Date.now();
+      saveNotesToStorage();
+    }
+    syncEditorFromActive();
+  }
+  renderNotesList();
+}
+
+document.getElementById('btn-notes-new').addEventListener('click', () => createNewNote());
+document.getElementById('notes-title-input').addEventListener('input', () => scheduleNotesFlush());
+getNotesBodyEl().addEventListener('input', () => {
+  updateNotesBodyEmptyClass();
+  scheduleNotesFlush();
+});
+getNotesBodyEl().addEventListener('paste', (e) => {
+  e.preventDefault();
+  const text = e.clipboardData.getData('text/plain');
+  document.execCommand('insertText', false, text);
+  updateNotesBodyEmptyClass();
+  scheduleNotesFlush();
+});
+document.getElementById('notes-search').addEventListener('input', () => renderNotesList());
+
+const notesGrammarEnabledEl = document.getElementById('notes-grammar-enabled');
+if (notesGrammarEnabledEl) {
+  notesGrammarEnabledEl.checked = loadNotesGrammarPref();
+  notesGrammarEnabledEl.addEventListener('change', () => {
+    saveNotesGrammarPref(notesGrammarEnabledEl.checked);
+    updateNotesGrammarUi();
+  });
+}
+document.getElementById('btn-notes-grammar-check')?.addEventListener('click', () => {
+  void runNotesGrammarCheck();
+});
+document.getElementById('btn-notes-grammar-dismiss')?.addEventListener('click', () => notesGrammarDismiss());
+document.getElementById('btn-notes-grammar-apply')?.addEventListener('click', () => applyNotesGrammarCorrections());
+
+updateNotesGrammarUi();
+
+document.getElementById('notes-toolbar').addEventListener('click', (e) => {
+  const swatch = e.target.closest('.notes-color-swatch[data-cmd]');
+  if (swatch && !swatch.disabled) {
+    notesRunCommand('foreColor', swatch.dataset.value);
+    return;
+  }
+  const btn = e.target.closest('.notes-fmt-btn[data-cmd]');
+  if (!btn || btn.disabled) return;
+  const cmd = btn.dataset.cmd;
+  const val = btn.dataset.value;
+  if (cmd === 'formatBlock' && val) notesRunCommand('formatBlock', val);
+  else notesRunCommand(cmd);
+});
+
+document.getElementById('notes-color-custom').addEventListener('input', (e) => {
+  notesRunCommand('foreColor', e.target.value);
+});
+
+document.addEventListener('selectionchange', () => {
+  if (getActiveTabName() !== 'notes') return;
+  if (document.activeElement !== getNotesBodyEl()) return;
+  syncNotesToolbarActiveStates();
+});
+
 // --- Tabs ---
 document.querySelectorAll('.tab').forEach((tab) => {
   tab.addEventListener('click', () => {
+    const leaving = getActiveTabName();
     const name = tab.dataset.tab;
+    if (leaving === 'notes' && name !== 'notes') {
+      flushNotesNow();
+      renderNotesList();
+      notesGrammarDismiss();
+    }
     document.querySelectorAll('.tab').forEach((t) => {
       const active = t === tab;
       t.classList.toggle('active', active);
@@ -638,6 +1224,9 @@ document.querySelectorAll('.tab').forEach((tab) => {
     if (name === 'passwords') {
       void refreshPasswordVaultGate();
     }
+    if (name === 'notes') {
+      initNotesTab();
+    }
   });
 });
 
@@ -647,6 +1236,7 @@ document.getElementById('btn-clear-workspace').addEventListener('click', () => {
   if (tab === 'email') clearEmailWorkspace();
   else if (tab === 'ppt') clearPptWorkspace();
   else if (tab === 'passwords') clearPasswordWorkspace();
+  else if (tab === 'notes') clearNotesWorkspace();
   else clearMeetingWorkspace();
 });
 
@@ -874,8 +1464,6 @@ document.getElementById('btn-copy-ppt').addEventListener('click', async () => {
 });
 
 // --- Theme: Light / Dark / System (preference in localStorage) ---
-const THEME_PREF_KEY = 'quill-theme-pref';
-
 function getThemePref() {
   return localStorage.getItem(THEME_PREF_KEY) || 'system';
 }

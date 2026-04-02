@@ -2,7 +2,7 @@
   "name": "quill-ai",
   "version": "1.0.1",
   "description": "Quill — meetings, email, and AI PowerPoint (Electron)",
-  "main": "main.js",
+  "main": "src/main.js",
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
