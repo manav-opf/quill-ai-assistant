@@ -15,21 +15,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
-    <script>
-      (function () {
-        try {
-          var pref = localStorage.getItem("quill-theme-pref") || "system";
-          var dark =
-            pref === "dark" ||
-            (pref !== "light" &&
-              typeof matchMedia !== "undefined" &&
-              matchMedia("(prefers-color-scheme: dark)").matches);
-          document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
-        } catch (e) {
-          document.documentElement.setAttribute("data-theme", "dark");
-        }
-      })();
-    </script>
+    <script src="js/theme-boot.js"></script>
   </head>
   <body>
     <div class="bg-mesh" aria-hidden="true"></div>
